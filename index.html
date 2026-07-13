@@ -7,19 +7,20 @@
      GitHub Pages erlaubt keine eigenen HTTP-Header → Meta-Variante (Chrome-partiell).
      Werk nutzt ohnehin keine Sensoren, kein Netz nach Ladezeit, keine Cookies. -->
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#14161c">
 <title>Escape Room · Schulfest</title>
 <style>
 /* ╔═══ WERKSTATT-CSS-RESET 2026 (konservative Variante) ═══════════════╗
    Basis: werkstatt-web-2026/werkstatt-default/css-reset-2026-werkstatt.md
-   Schwelle: Privat-Handy-Mix (Schulfest) → nur Widely-Available-Features,
-   kein light-dark()/oklch (Fallback-Pattern aus dem Guide).
+   Schwelle: Privat-Handy-Mix (Schulfest) → nur Widely-Available-Features.
 ╚══════════════════════════════════════════════════════════════════════╝ */
 @layer reset, base, components;
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
+  /* hidden-Attribut muss jede display-Regel schlagen (Layer-Umkehr bei !important) */
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -36,19 +37,20 @@
     }
   }
   @media (forced-colors: active) {
-    :where(a.karte) { border: 1px solid CanvasText; }
+    :where(button, input, .tuer) { border: 1px solid CanvasText; }
   }
 }
 
 @layer base {
-  /* Escape-Room-Atmosphäre: dunkel, ruhig, ein warmer Akzent */
   :root {
     color-scheme: dark;
     --bg: #14161c;
     --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
     --text: #e8e6df;
     --gedimmt: #9a978e;
     --akzent: #d9a441;        /* warmes Messing — Schatz, nicht Alarm */
+    --gruen: #7fb069;         /* geöffnete Tür */
     --linie: #33363f;
   }
   body {
@@ -61,12 +63,8 @@
     margin-inline: auto;
     padding: 2rem 1.25rem 3rem;
   }
-  header.kopf { text-align: center; margin-block: 1.5rem 2.5rem; }
-  .siegel {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
+  header.kopf { text-align: center; margin-block: 1.5rem 2rem; }
+  .siegel { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
   h1 {
     font-size: 1.6rem;
     letter-spacing: 0.06em;
@@ -75,38 +73,84 @@
     text-transform: uppercase;
   }
   .untertitel { color: var(--gedimmt); margin-top: 0.4rem; font-size: 0.95rem; }
-  .einleitung { color: var(--text); }
 }
 
 @layer components {
-  .stationen { display: grid; gap: 0.9rem; margin-top: 2rem; }
-  a.karte {
-    display: block;
+  .tueren { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+  .tuer {
     background: var(--flaeche);
     border: 1px solid var(--linie);
     border-radius: 10px;
     padding: 1.1rem 1.25rem;
-    color: inherit;
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    transition: border-color 0.2s ease;
   }
-  a.karte:hover, a.karte:focus-visible { border-color: var(--akzent); }
-  a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
-  .karte .titel {
-    font-weight: 600;
-    font-size: 1.1rem;
+  .tuer.offen { border-color: var(--gruen); }
+
+  .tuer h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.35rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
   }
-  .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
-  .karte.bald {
-    opacity: 0.45;
-    border-style: dashed;
-    pointer-events: none;
+  .tuer .schloss { font-size: 1.15rem; }
+  .tuer.offen .schloss-zu, .tuer:not(.offen) .schloss-auf { display: none; }
+
+  .tuer .frage { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+
+  .jahr-form { display: flex; gap: 0.6rem; }
+  .jahr-form input {
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    width: 7ch;
+    text-align: center;
+    padding: 0.55rem 0.4rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--bg);
+    color: var(--text);
+    letter-spacing: 0.15em;
   }
+  .jahr-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+  .jahr-form button {
+    font: inherit;
+    flex: 1;
+    min-height: 48px;                 /* Touch-Target */
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .jahr-form button:hover, .jahr-form button:focus-visible { border-color: var(--akzent); }
+  .jahr-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+  .meldung {
+    min-height: 1.4em;
+    margin: 0.6rem 0 0;
+    font-size: 0.9rem;
+    color: var(--gedimmt);
+  }
+  .tuer.offen .meldung { color: var(--gruen); }
+
+  a.betreten {
+    display: inline-block;
+    margin-top: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    min-height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--gruen);
+    color: var(--gruen);
+    text-decoration: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  a.betreten:hover, a.betreten:focus-visible { background: rgba(127, 176, 105, 0.12); }
+  a.betreten:focus-visible { outline: 2px solid var(--gruen); outline-offset: 2px; }
+
   footer.fuss {
     margin-top: 3rem;
     text-align: center;
@@ -124,24 +168,115 @@
     <p class="untertitel">Eine Station des Schulfests</p>
   </header>
 
-  <p class="einleitung">
-    Ihr habt einen geheimen Hinweis gefunden? Dann seid ihr hier richtig.
-    Hier liegen die Werkzeuge, mit denen ihr die Rätsel knacken könnt —
-    alles andere müsst ihr selbst herausfinden.
+  <p>
+    Vier Türen versperren euch den Weg zu den Rätseln.
+    Jede öffnet sich nur mit der richtigen Jahreszahl —
+    die Hinweise dazu findet ihr rund um das Schulfest.
   </p>
 
-  <nav class="stationen" aria-label="Rätsel-Werkzeuge">
-    <a class="karte" href="caesar.html">
-      <span class="titel"><span aria-hidden="true">🔄</span> Caesar-Scheibe</span>
-      <span class="beschreibung">Dreht die Scheibe und entschlüsselt die Geheimschrift — Buchstabe für Buchstabe.</span>
-    </a>
-    <a class="karte bald" href="#" aria-disabled="true" tabindex="-1">
-      <span class="titel"><span aria-hidden="true">🔒</span> Weitere Rätsel</span>
-      <span class="beschreibung">Diese Tür ist noch verschlossen …</span>
-    </a>
-  </nav>
+  <div class="tueren">
+    <!-- ═══ TÜR-KONFIGURATION ═══════════════════════════════════════════
+         Frage ändern: Text in .frage anpassen.
+         Jahr ändern:  neuen data-hash erzeugen (Anleitung im README,
+         Abschnitt „Tür-Jahr ändern") — die Jahreszahl selbst steht
+         absichtlich NICHT im Quelltext.                                -->
+    <section class="tuer" data-n="1" data-ziel="raum1.html"
+             data-hash="f8846723253ca23f123253558fb11e53d7111e428cf1d24703bad9d8413b31a3">
+      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 1</h2>
+      <p class="frage">In welchem Jahr wurde unser Schulgebäude erbaut?</p>
+      <form class="jahr-form" autocomplete="off">
+        <label class="visually-hidden" for="jahr1" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 1</label>
+        <input id="jahr1" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+        <button type="submit">Öffnen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <a class="betreten" href="raum1.html" hidden>Raum 1 betreten →</a>
+    </section>
+
+    <section class="tuer" data-n="2" data-ziel="raum2.html"
+             data-hash="1e3a896430a5a50c670fc39cf8e56438ea0c381d7f1a5b77c7f152369c1cbab7">
+      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 2</h2>
+      <p class="frage">In welchem Jahr wurde unsere Gesamtschule gegründet?</p>
+      <form class="jahr-form" autocomplete="off">
+        <label for="jahr2" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 2</label>
+        <input id="jahr2" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+        <button type="submit">Öffnen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <a class="betreten" href="raum2.html" hidden>Raum 2 betreten →</a>
+    </section>
+
+    <section class="tuer" data-n="3" data-ziel="raum3.html"
+             data-hash="3a89e887cfe7306a0510341e0790c49493869da32a81d31858c18d103f3a34c1">
+      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 3</h2>
+      <p class="frage">In welchem Jahr fiel die Berliner Mauer?</p>
+      <form class="jahr-form" autocomplete="off">
+        <label for="jahr3" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 3</label>
+        <input id="jahr3" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+        <button type="submit">Öffnen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <a class="betreten" href="raum3.html" hidden>Raum 3 betreten →</a>
+    </section>
+
+    <section class="tuer" data-n="4" data-ziel="raum4.html"
+             data-hash="6408d5233da643720088e3ec91a56aefce354e36867ffaf6a61feb89d1859ee2">
+      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 4</h2>
+      <p class="frage">In welchem Jahr betrat der erste Mensch den Mond?</p>
+      <form class="jahr-form" autocomplete="off">
+        <label for="jahr4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 4</label>
+        <input id="jahr4" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+        <button type="submit">Öffnen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <a class="betreten" href="raum4.html" hidden>Raum 4 betreten →</a>
+    </section>
+  </div>
 
   <footer class="fuss">Viel Erfolg — die Zeit läuft nur in eurem Kopf.</footer>
 </main>
+
+<script>
+(() => {
+  'use strict';
+
+  // Gesalzener SHA-256 — die Jahreszahl steht nirgends im Klartext.
+  async function jahrHash(jahr, n) {
+    const data = new TextEncoder().encode(`${jahr}·tuer${n}·schulfest`);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function oeffneUI(tuer, sofort) {
+    tuer.classList.add('offen');
+    tuer.querySelector('.jahr-form').hidden = true;
+    tuer.querySelector('.betreten').hidden = false;
+    tuer.querySelector('.meldung').textContent = sofort ? 'Diese Tür habt ihr bereits geöffnet.' : 'Die Tür öffnet sich …';
+  }
+
+  document.querySelectorAll('.tuer').forEach(tuer => {
+    const n = tuer.dataset.n;
+    const key = 'sf_tuer' + n;
+
+    if (localStorage.getItem(key) === 'offen') oeffneUI(tuer, true);
+
+    tuer.querySelector('.jahr-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const input = tuer.querySelector('input');
+      const meldung = tuer.querySelector('.meldung');
+      const jahr = input.value.trim();
+
+      if (await jahrHash(jahr, n) === tuer.dataset.hash) {
+        try { localStorage.setItem(key, 'offen'); } catch (e) { /* Privat-Modus: Tür öffnet trotzdem */ }
+        oeffneUI(tuer, false);
+        setTimeout(() => { location.href = tuer.dataset.ziel; }, 600);
+      } else {
+        meldung.textContent = 'Die Tür bleibt verschlossen — dieses Jahr ist es nicht.';
+        input.select();
+      }
+    });
+  });
+})();
+</script>
 </body>
 </html>
