@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#14161c">
+<title>Raum 4 · Escape Room</title>
+<script>
+/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand.
+   Fail-open bei blockiertem Speicher (Privat-Modus) — Spielfluss vor Strenge. */
+try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.html'); } catch (e) {}
+</script>
+<style>
+@layer reset, base, components;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    font-size: clamp(15px, 1rem + 0.2vw, 19px);
+  }
+  :where(h1, h2) { text-wrap: balance; }
+  :where(p, li) { text-wrap: pretty; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @media (forced-colors: active) {
+    :where(a.karte, .platzhalter) { border: 1px solid CanvasText; }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --bg: #14161c;
+    --flaeche: #1e2129;
+    --text: #e8e6df;
+    --gedimmt: #9a978e;
+    --akzent: #d9a441;
+    --linie: #33363f;
+  }
+  body { background: var(--bg); color: var(--text); min-height: 100svh; }
+  main { max-width: 34rem; margin-inline: auto; padding: 1.25rem 1.25rem 3rem; }
+  a.zurueck { color: var(--gedimmt); text-decoration: none; font-size: 0.9rem; }
+  a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
+  header.kopf { text-align: center; margin-block: 1rem 1.5rem; }
+  .siegel { font-size: 2.4rem; display: block; margin-bottom: 0.4rem; }
+  h1 {
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    margin: 0;
+    color: var(--akzent);
+    text-transform: uppercase;
+  }
+  .untertitel { color: var(--gedimmt); margin-top: 0.3rem; font-size: 0.92rem; }
+}
+
+@layer components {
+  .inhalte { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+  a.karte {
+    display: block;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: border-color 0.2s ease;
+  }
+  a.karte:hover, a.karte:focus-visible { border-color: var(--akzent); }
+  a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+  .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
+  .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
+  .platzhalter {
+    background: var(--flaeche);
+    border: 1px dashed var(--linie);
+    border-radius: 10px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    color: var(--gedimmt);
+  }
+}
+</style>
+</head>
+<body>
+<main>
+  <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
+  <header class="kopf">
+    <span class="siegel" aria-hidden="true">🌑</span>
+    <h1>Raum 4</h1>
+    <p class="untertitel">Noch verhüllt</p>
+  </header>
+
+  <div class="inhalte">
+    <div class="platzhalter">
+      <p>🛠️ Dieser Raum wird noch eingerichtet —<br>hier entsteht euer nächstes Rätsel.</p>
+    </div>
+    <!-- ╔═ RÄTSEL FÜR DIESEN RAUM HIER EINFÜGEN ═╗
+         Platzhalter-Div oben ersetzen durch eure Inhalte:
+         Karte:  <a class="karte" href="mein-raetsel.html">…</a>
+         Text:   beliebiges HTML (Bilder als data:-URI einbetten).
+         ╚═ (self-contained bleiben: keine externen Quellen) ═╝ -->
+  </div>
+</main>
+</body>
+</html>
