@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DSGVO-Härtung (werkstatt-web-2026 · dsgvo/permissions-policy-default-block):
+     GitHub Pages erlaubt keine eigenen HTTP-Header → Meta-Variante (Chrome-partiell).
+     Werk nutzt ohnehin keine Sensoren, kein Netz nach Ladezeit, keine Cookies. -->
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#14161c">
+<title>Escape Room · Schulfest</title>
+<style>
+/* ╔═══ WERKSTATT-CSS-RESET 2026 (konservative Variante) ═══════════════╗
+   Basis: werkstatt-web-2026/werkstatt-default/css-reset-2026-werkstatt.md
+   Schwelle: Privat-Handy-Mix (Schulfest) → nur Widely-Available-Features,
+   kein light-dark()/oklch (Fallback-Pattern aus dem Guide).
+╚══════════════════════════════════════════════════════════════════════╝ */
+@layer reset, base, components;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    font-size: clamp(15px, 1rem + 0.2vw, 19px);
+  }
+  :where(h1, h2, h3) { text-wrap: balance; }
+  :where(p, li) { text-wrap: pretty; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  @media (forced-colors: active) {
+    :where(a.karte) { border: 1px solid CanvasText; }
+  }
+}
+
+@layer base {
+  /* Escape-Room-Atmosphäre: dunkel, ruhig, ein warmer Akzent */
+  :root {
+    color-scheme: dark;
+    --bg: #14161c;
+    --flaeche: #1e2129;
+    --text: #e8e6df;
+    --gedimmt: #9a978e;
+    --akzent: #d9a441;        /* warmes Messing — Schatz, nicht Alarm */
+    --linie: #33363f;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100svh;
+  }
+  main {
+    max-width: 34rem;
+    margin-inline: auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  header.kopf { text-align: center; margin-block: 1.5rem 2.5rem; }
+  .siegel {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    font-size: 1.6rem;
+    letter-spacing: 0.06em;
+    margin: 0;
+    color: var(--akzent);
+    text-transform: uppercase;
+  }
+  .untertitel { color: var(--gedimmt); margin-top: 0.4rem; font-size: 0.95rem; }
+  .einleitung { color: var(--text); }
+}
+
+@layer components {
+  .stationen { display: grid; gap: 0.9rem; margin-top: 2rem; }
+  a.karte {
+    display: block;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: border-color 0.2s ease;
+  }
+  a.karte:hover, a.karte:focus-visible { border-color: var(--akzent); }
+  a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+  .karte .titel {
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
+  .karte.bald {
+    opacity: 0.45;
+    border-style: dashed;
+    pointer-events: none;
+  }
+  footer.fuss {
+    margin-top: 3rem;
+    text-align: center;
+    color: var(--gedimmt);
+    font-size: 0.85rem;
+  }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="kopf">
+    <span class="siegel" aria-hidden="true">🗝️</span>
+    <h1>Escape Room</h1>
+    <p class="untertitel">Eine Station des Schulfests</p>
+  </header>
+
+  <p class="einleitung">
+    Ihr habt einen geheimen Hinweis gefunden? Dann seid ihr hier richtig.
+    Hier liegen die Werkzeuge, mit denen ihr die Rätsel knacken könnt —
+    alles andere müsst ihr selbst herausfinden.
+  </p>
+
+  <nav class="stationen" aria-label="Rätsel-Werkzeuge">
+    <a class="karte" href="caesar.html">
+      <span class="titel"><span aria-hidden="true">🔄</span> Caesar-Scheibe</span>
+      <span class="beschreibung">Dreht die Scheibe und entschlüsselt die Geheimschrift — Buchstabe für Buchstabe.</span>
+    </a>
+    <a class="karte bald" href="#" aria-disabled="true" tabindex="-1">
+      <span class="titel"><span aria-hidden="true">🔒</span> Weitere Rätsel</span>
+      <span class="beschreibung">Diese Tür ist noch verschlossen …</span>
+    </a>
+  </nav>
+
+  <footer class="fuss">Viel Erfolg — die Zeit läuft nur in eurem Kopf.</footer>
+</main>
+</body>
+</html>
