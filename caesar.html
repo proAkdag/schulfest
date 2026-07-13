@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DSGVO-Härtung: Meta-Variante (GitHub Pages, keine eigenen Header möglich).
+     Werk ist self-contained, kein Netz nach Ladezeit, keine Sensoren, keine Cookies. -->
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#14161c">
+<title>Caesar-Scheibe · Escape Room</title>
+<style>
+@layer reset, base, components;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    font-size: clamp(15px, 1rem + 0.2vw, 19px);
+  }
+  :where(h1, h2) { text-wrap: balance; }
+  :where(p, li) { text-wrap: pretty; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @media (forced-colors: active) {
+    :where(button) { border: 1px solid CanvasText; }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --bg: #14161c;
+    --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
+    --text: #e8e6df;
+    --gedimmt: #9a978e;
+    --akzent: #d9a441;
+    --linie: #33363f;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100svh;
+  }
+  main {
+    max-width: 30rem;
+    margin-inline: auto;
+    padding: 1.25rem 1.25rem 3rem;
+  }
+  a.zurueck {
+    color: var(--gedimmt);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
+  h1 {
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    color: var(--akzent);
+    text-transform: uppercase;
+    text-align: center;
+    margin: 1rem 0 0.25rem;
+  }
+  .untertitel {
+    text-align: center;
+    color: var(--gedimmt);
+    font-size: 0.92rem;
+    margin: 0 0 1rem;
+  }
+}
+
+@layer components {
+  /* ── Scheibe ── */
+  .scheiben-buehne {
+    display: grid;
+    place-items: center;
+  }
+  svg.scheibe {
+    width: min(100%, 380px);
+    height: auto;
+    touch-action: none;              /* Drag darf nicht scrollen */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #rotor {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.25s ease;
+    cursor: grab;
+  }
+  #rotor.dragging { transition: none; cursor: grabbing; }
+
+  /* ── Ablese-Anzeige ── */
+  output.ablesung {
+    display: block;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.15rem;
+    margin-top: 0.75rem;
+    color: var(--text);
+  }
+  output.ablesung b { color: var(--akzent); font-size: 1.3em; }
+
+  /* ── Dreh-Tasten ── */
+  .tasten {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .tasten button {
+    font: inherit;
+    font-size: 1.05rem;
+    min-width: 7.5rem;
+    min-height: 48px;                 /* Touch-Target */
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche);
+    color: var(--text);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+  .tasten button:hover, .tasten button:focus-visible { border-color: var(--akzent); }
+  .tasten button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+  .tasten button:active { background: var(--flaeche-hell); }
+
+  /* ── Anleitung ── */
+  .anleitung {
+    margin-top: 2rem;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  .anleitung h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--akzent); }
+  .anleitung ol { margin: 0; padding-left: 1.2rem; }
+  .anleitung li { margin-block: 0.35rem; }
+}
+</style>
+</head>
+<body>
+<main>
+  <a class="zurueck" href="index.html">← Zurück zur Übersicht</a>
+  <h1>Caesar-Scheibe</h1>
+  <p class="untertitel">Außen: Klartext · Innen: Geheimschrift</p>
+
+  <div class="scheiben-buehne">
+    <svg class="scheibe" viewBox="0 0 340 340" role="img"
+         aria-label="Drehbare Caesar-Verschlüsselungsscheibe. Nutze die Tasten unter der Scheibe, um sie zu drehen.">
+      <!-- Ablese-Marke bei 12 Uhr -->
+      <path d="M 170 4 L 163 16 L 177 16 Z" fill="#d9a441"/>
+      <!-- Äußerer Ring (fix, Klartext) -->
+      <circle cx="170" cy="170" r="150" fill="#1e2129" stroke="#33363f" stroke-width="1.5"/>
+      <g id="aussenring"></g>
+      <!-- Innere Scheibe (drehbar, Geheimschrift) -->
+      <g id="rotor">
+        <circle cx="170" cy="170" r="118" fill="#2a2e39" stroke="#d9a441" stroke-width="1.5"/>
+        <g id="innenring"></g>
+        <!-- Griffmulde als Dreh-Hinweis -->
+        <circle cx="170" cy="170" r="26" fill="none" stroke="#33363f" stroke-width="1"/>
+        <text x="170" y="170" text-anchor="middle" dominant-baseline="central"
+              font-size="20" fill="#9a978e" style="pointer-events:none">⟳</text>
+      </g>
+    </svg>
+  </div>
+
+  <output class="ablesung" id="ablesung" aria-live="polite"></output>
+
+  <div class="tasten">
+    <button type="button" id="minus" aria-label="Eine Position zurückdrehen">− 1</button>
+    <button type="button" id="plus" aria-label="Eine Position weiterdrehen">+ 1</button>
+  </div>
+
+  <section class="anleitung">
+    <h2>So knackt ihr den Code</h2>
+    <ol>
+      <li>Dreht die innere Scheibe — mit dem Finger oder den Tasten.</li>
+      <li>Sucht einen Buchstaben eures <strong>Geheimtexts innen</strong> und lest <strong>außen</strong> ab, was er im Klartext bedeutet.</li>
+      <li>Ergibt der Text keinen Sinn? Weiterdrehen und neu probieren — es gibt nur 25 Möglichkeiten.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const N = 26;
+  const STEP = 360 / N;
+  const CX = 170, CY = 170;
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const rotor = document.getElementById('rotor');
+  const ablesung = document.getElementById('ablesung');
+
+  // Buchstaben-Ringe generieren (außen fix, innen drehbar)
+  function baueRing(gruppe, radius, farbe, groesse) {
+    for (let i = 0; i < N; i++) {
+      const winkel = i * STEP;
+      const t = document.createElementNS(svgNS, 'text');
+      t.setAttribute('x', CX);
+      t.setAttribute('y', CY - radius);
+      t.setAttribute('transform', `rotate(${winkel} ${CX} ${CY})`);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'central');
+      t.setAttribute('font-size', groesse);
+      t.setAttribute('font-weight', '600');
+      t.setAttribute('fill', farbe);
+      t.style.pointerEvents = 'none';
+      t.textContent = ALPHABET[i];
+      gruppe.appendChild(t);
+    }
+  }
+  baueRing(document.getElementById('aussenring'), 135, '#e8e6df', 17);
+  baueRing(document.getElementById('innenring'), 102, '#d9a441', 15);
+
+  // ── Rotations-Zustand ──
+  let deg = 0;              // aktuelle Rotation der Innen-Scheibe in Grad
+  const mod = (a, n) => ((a % n) + n) % n;
+
+  function render() {
+    rotor.style.transform = `rotate(${deg}deg)`;
+    // Unter Klartext-A (12 Uhr) liegt der Innen-Buchstabe mit Index -deg/STEP
+    const shift = mod(Math.round(-deg / STEP), N);
+    ablesung.innerHTML =
+      `<b>A</b> → <b>${ALPHABET[shift]}</b> &nbsp;·&nbsp; Verschiebung ${shift}`;
+  }
+
+  function snap() {
+    deg = Math.round(deg / STEP) * STEP;
+    render();
+  }
+
+  // ── Tasten: +1 erhöht die Verschiebung (dreht gegen den Uhrzeigersinn) ──
+  document.getElementById('plus').addEventListener('click', () => { deg -= STEP; render(); });
+  document.getElementById('minus').addEventListener('click', () => { deg += STEP; render(); });
+
+  // ── Finger-Drehung (Pointer Events + Capture) ──
+  const svg = document.querySelector('svg.scheibe');
+  let dragId = null, startWinkel = 0, startDeg = 0;
+
+  function pointerWinkel(ev) {
+    const r = svg.getBoundingClientRect();
+    return Math.atan2(
+      ev.clientY - (r.top + r.height / 2),
+      ev.clientX - (r.left + r.width / 2)
+    ) * 180 / Math.PI;
+  }
+
+  rotor.addEventListener('pointerdown', (ev) => {
+    dragId = ev.pointerId;
+    startWinkel = pointerWinkel(ev);
+    startDeg = deg;
+    rotor.classList.add('dragging');
+    rotor.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  rotor.addEventListener('pointermove', (ev) => {
+    if (ev.pointerId !== dragId) return;
+    deg = startDeg + (pointerWinkel(ev) - startWinkel);
+    render();
+  });
+  function dragEnde(ev) {
+    if (ev.pointerId !== dragId) return;
+    dragId = null;
+    rotor.classList.remove('dragging');
+    snap();
+  }
+  rotor.addEventListener('pointerup', dragEnde);
+  rotor.addEventListener('pointercancel', dragEnde);
+
+  render();
+})();
+</script>
+</body>
+</html>
