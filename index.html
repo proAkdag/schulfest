@@ -136,6 +136,59 @@
   }
   .tuer.offen .meldung { color: var(--gruen); }
 
+  /* Aufklappbarer Tipp je Tür */
+  details.tipp { margin-top: 0.25rem; font-size: 0.9rem; }
+  details.tipp summary {
+    color: var(--gedimmt);
+    cursor: pointer;
+    padding: 0.35rem 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  details.tipp summary:hover, details.tipp summary:focus-visible { color: var(--akzent); }
+  details.tipp summary:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+  details.tipp[open] summary { color: var(--akzent); }
+  details.tipp p {
+    margin: 0.4rem 0 0.2rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+    color: var(--text);
+    font-style: italic;
+  }
+  .tuer.offen details.tipp { display: none; }   /* offene Tür braucht keinen Tipp mehr */
+
+  /* Zurücksetzen (dezent, mit Bestätigungs-Schritt) */
+  details.reset {
+    margin-top: 2.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  details.reset summary {
+    color: var(--gedimmt);
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  details.reset summary:hover, details.reset summary:focus-visible { color: var(--akzent); }
+  details.reset p { color: var(--gedimmt); margin: 0.5rem 0; }
+  details.reset button {
+    font: inherit;
+    min-height: 44px;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  details.reset button:hover, details.reset button:focus-visible { border-color: var(--akzent); }
+
   a.betreten {
     display: inline-block;
     margin-top: 0.4rem;
@@ -181,57 +234,79 @@
          Abschnitt „Tür-Jahr ändern") — die Jahreszahl selbst steht
          absichtlich NICHT im Quelltext.                                -->
     <section class="tuer" data-n="1" data-ziel="raum1.html"
-             data-hash="f8846723253ca23f123253558fb11e53d7111e428cf1d24703bad9d8413b31a3">
+             data-hash="95d418c442a3100b7401427a39d6d9d44f9c22cdb47cc42df3287939f98fba0d">
       <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 1</h2>
-      <p class="frage">In welchem Jahr wurde das Gebäude des Meißner-Gymnasiums erbaut?</p>
+      <p class="frage">In welchem Jahr wurde die Gesamtschule Haspe gegründet?</p>
       <form class="jahr-form" autocomplete="off">
         <label class="visually-hidden" for="jahr1" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 1</label>
         <input id="jahr1" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
         <button type="submit">Öffnen</button>
       </form>
       <p class="meldung" aria-live="polite"></p>
+      <details class="tipp">
+        <summary>💡 Tipp ansehen</summary>
+        <p>Dieses Fest feiert nicht nur euch. Findet heraus, welches Jubiläum heute begangen wird — und rechnet zurück.</p>
+      </details>
       <a class="betreten" href="raum1.html" hidden>Raum 1 betreten →</a>
     </section>
 
     <section class="tuer" data-n="2" data-ziel="raum2.html"
-             data-hash="1e3a896430a5a50c670fc39cf8e56438ea0c381d7f1a5b77c7f152369c1cbab7">
+             data-hash="56c0877c097bbd8f1edcf8575748388273667fc92b4a8834bce43a58d391b0b7">
       <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 2</h2>
-      <p class="frage">In welchem Jahr wurde die Gesamtschule Haspe gegründet?</p>
+      <p class="frage">In welchem Jahr wurde das Gebäude des Meißner-Gymnasiums erbaut?</p>
       <form class="jahr-form" autocomplete="off">
         <label for="jahr2" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 2</label>
         <input id="jahr2" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
         <button type="submit">Öffnen</button>
       </form>
       <p class="meldung" aria-live="polite"></p>
+      <details class="tipp">
+        <summary>💡 Tipp ansehen</summary>
+        <p>Alte Mauern vergessen nichts. Tretet vor den Altbau — er trägt die Antwort.</p>
+      </details>
       <a class="betreten" href="raum2.html" hidden>Raum 2 betreten →</a>
     </section>
 
     <section class="tuer" data-n="3" data-ziel="raum3.html"
-             data-hash="f2a01ccefbe6b128fe0940e6f0d6c0322a6225d16eaeba0757e5be30596ef46a">
+             data-hash="2fb3e2efcd7d1b0f58bc9b954fcdebbb168b55327ed71117790e11bf62f0c0d8">
       <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 3</h2>
-      <p class="frage">Vor wie vielen Jahren wurde der Neubau ungefähr gebaut?</p>
+      <p class="frage">In welchem Jahr wurde der Pizzaofen auf dem Schulhof gebaut?</p>
       <form class="jahr-form" autocomplete="off">
-        <label for="jahr3" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Zahl für Tür 3</label>
-        <input id="jahr3" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="··" required>
+        <label for="jahr3" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 3</label>
+        <input id="jahr3" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
         <button type="submit">Öffnen</button>
       </form>
       <p class="meldung" aria-live="polite"></p>
+      <details class="tipp">
+        <summary>💡 Tipp ansehen</summary>
+        <p>Nicht jedes Geheimnis steht geschrieben. Ein Experte steht bereit — ihr müsst nur die richtige Frage stellen.</p>
+      </details>
       <a class="betreten" href="raum3.html" hidden>Raum 3 betreten →</a>
     </section>
 
     <section class="tuer" data-n="4" data-ziel="raum4.html"
-             data-hash="6408d5233da643720088e3ec91a56aefce354e36867ffaf6a61feb89d1859ee2">
+             data-hash="afb563f469e8a35267e612b09af51480f47d20aaa3fb264e33578d31d9bea7d7">
       <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 4</h2>
-      <p class="frage">In welchem Jahr betrat der erste Mensch den Mond?</p>
+      <p class="frage">Vor wie vielen Jahren wurde der Neubau ungefähr gebaut?</p>
       <form class="jahr-form" autocomplete="off">
-        <label for="jahr4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 4</label>
-        <input id="jahr4" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+        <label for="jahr4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Zahl für Tür 4</label>
+        <input id="jahr4" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="··" required>
         <button type="submit">Öffnen</button>
       </form>
       <p class="meldung" aria-live="polite"></p>
+      <details class="tipp">
+        <summary>💡 Tipp ansehen</summary>
+        <p>Der Schulhof zählt mit euch. Zählt die Basketballkörbe — und nehmt ihre Zahl mal fünfzehn.</p>
+      </details>
       <a class="betreten" href="raum4.html" hidden>Raum 4 betreten →</a>
     </section>
   </div>
+
+  <details class="reset">
+    <summary>↺ Von vorn beginnen</summary>
+    <p>Alle vier Türen verschließen sich wieder — die Zahlen müsst ihr erneut herausfinden.</p>
+    <button type="button" id="resetBtn">Ja, alle Türen verschließen</button>
+  </details>
 
   <footer class="fuss">Viel Erfolg — die Zeit läuft nur in eurem Kopf.</footer>
 </main>
@@ -275,6 +350,12 @@
         input.select();
       }
     });
+  });
+
+  // Zurücksetzen: alle Tür-Flags löschen, Seite neu laden (alle Türen wieder zu)
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    try { [1, 2, 3, 4].forEach(n => localStorage.removeItem('sf_tuer' + n)); } catch (e) {}
+    location.reload();
   });
 })();
 </script>
