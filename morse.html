@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#14161c">
+<title>Funkstation · Escape Room</title>
+<style>
+@layer reset, base, components;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    font-size: clamp(15px, 1rem + 0.2vw, 19px);
+  }
+  :where(h1, h2) { text-wrap: balance; }
+  :where(p, li) { text-wrap: pretty; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @media (forced-colors: active) {
+    :where(button, input, .licht) { border: 1px solid CanvasText; }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --bg: #14161c;
+    --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
+    --text: #e8e6df;
+    --gedimmt: #9a978e;
+    --akzent: #d9a441;
+    --gruen: #7fb069;
+    --linie: #33363f;
+  }
+  body { background: var(--bg); color: var(--text); min-height: 100svh; }
+  main { max-width: 30rem; margin-inline: auto; padding: 1.25rem 1.25rem 3rem; }
+  a.zurueck { color: var(--gedimmt); text-decoration: none; font-size: 0.9rem; }
+  a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
+  h1 {
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    color: var(--akzent);
+    text-transform: uppercase;
+    text-align: center;
+    margin: 1rem 0 0.25rem;
+  }
+  .untertitel { text-align: center; color: var(--gedimmt); font-size: 0.92rem; margin: 0 0 1.25rem; }
+}
+
+@layer components {
+  /* ── Signal-Licht ── */
+  .funkraum {
+    display: grid;
+    place-items: center;
+    gap: 1rem;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.5rem 1.25rem;
+  }
+  .licht {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #262a33;
+    border: 2px solid var(--linie);
+    transition: background 0.05s linear, box-shadow 0.05s linear;
+  }
+  .licht.an {
+    background: var(--akzent);
+    border-color: var(--akzent);
+    box-shadow: 0 0 40px 8px rgba(217, 164, 65, 0.45);
+  }
+  .steuerung { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+  .steuerung button {
+    font: inherit;
+    min-height: 48px;
+    padding: 0.55rem 1.3rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .steuerung button:hover, .steuerung button:focus-visible { border-color: var(--akzent); }
+  .steuerung button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+  .steuerung button[aria-pressed="true"] { border-color: var(--akzent); color: var(--akzent); }
+  .status { color: var(--gedimmt); font-size: 0.9rem; min-height: 1.4em; margin: 0; text-align: center; }
+
+  /* ── Antwort ── */
+  .antwort { margin-top: 1.25rem; }
+  .antwort form { display: flex; gap: 0.6rem; }
+  .antwort input {
+    font: inherit;
+    flex: 1;
+    min-width: 0;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche);
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .antwort input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+  .antwort button {
+    font: inherit;
+    min-height: 48px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .antwort button:hover, .antwort button:focus-visible { border-color: var(--akzent); }
+  .meldung { min-height: 1.4em; margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--gedimmt); }
+  .meldung.richtig { color: var(--gruen); }
+
+  /* ── Morse-Tafel ── */
+  details.tafel { margin-top: 1.5rem; font-size: 0.95rem; }
+  details.tafel summary {
+    color: var(--gedimmt);
+    cursor: pointer;
+    padding: 0.4rem 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  details.tafel summary:hover, details.tafel summary:focus-visible { color: var(--akzent); }
+  details.tafel[open] summary { color: var(--akzent); }
+  .tafel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    gap: 0.25rem 0.75rem;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-top: 0.5rem;
+  }
+  .tafel-grid span {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .tafel-grid b { color: var(--akzent); display: inline-block; width: 1.4em; }
+
+  /* ── Anleitung ── */
+  .anleitung {
+    margin-top: 1.5rem;
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  .anleitung h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--akzent); }
+  .anleitung ol { margin: 0; padding-left: 1.2rem; }
+  .anleitung li { margin-block: 0.35rem; }
+}
+</style>
+</head>
+<body>
+<main>
+  <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
+  <h1>📡 Funkstation</h1>
+  <p class="untertitel">Jemand sendet euch eine Botschaft — Punkt für Punkt, Strich für Strich.</p>
+
+  <div class="funkraum">
+    <div class="licht" id="licht" aria-hidden="true"></div>
+    <div class="steuerung">
+      <button type="button" id="playBtn">▶ Botschaft empfangen</button>
+      <button type="button" id="tempoBtn" aria-pressed="true">🐢 Langsam</button>
+    </div>
+    <p class="status" id="status" aria-live="polite">Bereit zum Empfang.</p>
+  </div>
+
+  <div class="antwort">
+    <form id="antwortForm" autocomplete="off">
+      <label for="wort" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Entschlüsseltes Wort</label>
+      <input id="wort" maxlength="12" placeholder="EUER WORT" required>
+      <button type="submit">Prüfen</button>
+    </form>
+    <p class="meldung" id="meldung" aria-live="polite"></p>
+  </div>
+
+  <details class="tafel">
+    <summary>📖 Morse-Tafel aufschlagen</summary>
+    <div class="tafel-grid" id="tafel"></div>
+  </details>
+
+  <section class="anleitung">
+    <h2>So empfangt ihr die Botschaft</h2>
+    <ol>
+      <li>Drückt <strong>Empfangen</strong> — das Licht blinkt und der Ton piept: kurz = Punkt (·), lang = Strich (−).</li>
+      <li>Schreibt die Zeichen auf. Eine längere Pause bedeutet: nächster Buchstabe.</li>
+      <li>Übersetzt mit der Morse-Tafel — so oft wiederholen, wie ihr wollt.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ═══ STATIONS-KONFIGURATION ══════════════════════════════════════
+     SEQUENZ: die Botschaft als Morse (Leerzeichen = Buchstabengrenze).
+     HASH:    gesalzener SHA-256 des Lösungsworts (GROSSBUCHSTABEN),
+              Salz-Muster wie bei den Türen: `${WORT}·morse·schulfest`.
+     Das Klartext-Wort steht absichtlich nirgends im Quelltext.       */
+  const SEQUENZ = '... -.-. .... .- - --..';
+  const HASH = 'b03fa34c92db2cf7b22f10b55f282cb82ab1a6569ba5f3d633ae85bf5fa8bffa';
+
+  const MORSE = {
+    A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',
+    J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',
+    S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..'
+  };
+
+  // Morse-Tafel rendern
+  const tafel = document.getElementById('tafel');
+  for (const [buchstabe, code] of Object.entries(MORSE)) {
+    const s = document.createElement('span');
+    const b = document.createElement('b');
+    b.textContent = buchstabe;
+    s.appendChild(b);
+    s.appendChild(document.createTextNode(code.replaceAll('.', '·').replaceAll('-', '−')));
+    tafel.appendChild(s);
+  }
+
+  // ── Abspiel-Logik: Zeitfenster aus der Sequenz bauen ──
+  // dit=1 · dah=3 · Pause im Zeichen=1 · Pause zwischen Buchstaben=3 Einheiten
+  function baueFenster(einheit) {
+    const fenster = [];
+    let t = 0.15;                       // kleiner Vorlauf
+    for (const zeichen of SEQUENZ.split(' ')) {
+      for (const symbol of zeichen) {
+        const dauer = (symbol === '-' ? 3 : 1) * einheit;
+        fenster.push([t, t + dauer]);
+        t += dauer + einheit;           // Pause innerhalb des Buchstabens
+      }
+      t += 2 * einheit;                 // ergibt 3 Einheiten Buchstaben-Pause
+    }
+    return { fenster, ende: t };
+  }
+
+  const licht = document.getElementById('licht');
+  const playBtn = document.getElementById('playBtn');
+  const tempoBtn = document.getElementById('tempoBtn');
+  const status = document.getElementById('status');
+
+  let ctx = null, aktiverGain = null, rafId = 0, spieltBis = 0;
+  let langsam = true;
+
+  function stop() {
+    if (aktiverGain) {
+      try { aktiverGain.gain.cancelScheduledValues(0); aktiverGain.gain.value = 0; } catch (e) {}
+      aktiverGain = null;
+    }
+    cancelAnimationFrame(rafId);
+    licht.classList.remove('an');
+    spieltBis = 0;
+    playBtn.textContent = '▶ Botschaft empfangen';
+    status.textContent = 'Bereit zum Empfang.';
+  }
+
+  async function play() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();   // iOS: innerhalb der User-Geste
+    stop();
+
+    const einheit = langsam ? 0.3 : 0.15;
+    const { fenster, ende } = baueFenster(einheit);
+    const t0 = ctx.currentTime;
+
+    // Ton: ein Oszillator, Lautstärke sample-genau auf der Audio-Timeline geplant
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 600;
+    gain.gain.value = 0;
+    osc.connect(gain).connect(ctx.destination);
+    for (const [an, aus] of fenster) {
+      gain.gain.setTargetAtTime(0.35, t0 + an, 0.005);
+      gain.gain.setTargetAtTime(0, t0 + aus, 0.005);
+    }
+    osc.start(t0);
+    osc.stop(t0 + ende + 0.2);
+    aktiverGain = gain;
+    spieltBis = t0 + ende;
+
+    // Licht: mit der Audio-Uhr synchron blinken
+    function tick() {
+      const jetzt = ctx.currentTime - t0;
+      const an = fenster.some(([a, b]) => jetzt >= a && jetzt < b);
+      licht.classList.toggle('an', an);
+      if (ctx.currentTime < spieltBis) { rafId = requestAnimationFrame(tick); }
+      else { stop(); status.textContent = 'Botschaft zu Ende — gern noch einmal senden.'; }
+    }
+    rafId = requestAnimationFrame(tick);
+    playBtn.textContent = '⏹ Stopp';
+    status.textContent = 'Empfang läuft … kurz = Punkt, lang = Strich.';
+  }
+
+  playBtn.addEventListener('click', () => { (spieltBis && ctx && ctx.currentTime < spieltBis) ? stop() : play(); });
+  tempoBtn.addEventListener('click', () => {
+    langsam = !langsam;
+    tempoBtn.textContent = langsam ? '🐢 Langsam' : '🐇 Normal';
+    tempoBtn.setAttribute('aria-pressed', String(langsam));
+  });
+
+  // ── Antwort prüfen (gesalzener SHA-256, wie an den Türen) ──
+  async function wortHash(wort) {
+    const data = new TextEncoder().encode(`${wort}·morse·schulfest`);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  document.getElementById('antwortForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const input = document.getElementById('wort');
+    const meldung = document.getElementById('meldung');
+    const wort = input.value.trim().toUpperCase();
+    if (await wortHash(wort) === HASH) {
+      meldung.textContent = 'Empfang bestätigt — das ist die Botschaft! Merkt sie euch gut.';
+      meldung.classList.add('richtig');
+    } else {
+      meldung.textContent = 'Das ergibt noch keinen Sinn — hört noch einmal genau hin.';
+      meldung.classList.remove('richtig');
+      input.select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
