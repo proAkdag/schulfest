@@ -1,363 +1,464 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-<meta name="theme-color" content="#14161c">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#0e131d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- GATE-ALLOW: PWA-Site auf GitHub Pages — manifest.webmanifest ist same-origin-Pflichtdatei und liegt im SW-Precache; kein CDN, kein Fremd-Origin -->
 <title>Raum 1 · Escape Room</title>
 <script>
-/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand. Fail-open bei blockiertem Speicher. */
-try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.html'); } catch (e) {}
+/* Früh-Theme vor erstem Paint — verhindert Hell/Dunkel-Blitz */
+(function () {
+  try {
+    var s = localStorage.getItem('sf_theme');
+    if (s) document.documentElement.style.colorScheme = s === 'dunkel' ? 'dark' : 'light';
+  } catch (e) {}
+})();
 </script>
 <style>
-@layer reset, base, components;
-
-@layer reset {
-  *, *::before, *::after { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.55;
-    font-size: clamp(15px, 1rem + 0.2vw, 19px);
-  }
-  :where(h1, h2) { text-wrap: balance; }
-  :where(p, li) { text-wrap: pretty; }
-  img { max-width: 100%; height: auto; display: block; }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  }
-  @media (forced-colors: active) {
-    :where(a.karte, .raetsel, button, input, .beute) { border: 1px solid CanvasText; }
-  }
+:root { color-scheme: light dark; }
+/* Fallback für Browser ohne light-dark(): helles Theme */
+:root {
+  --bg: #f3f1ea; --karte: #ffffff; --karte2: #edeae1; --text: #1e2733; --dim: #5b6575;
+  --blau: #1d4f9e; --btn: #1d4f9e; --gold: #99700e; --goldbg: rgba(153,112,14,.08);
+  --rot: #bd3a2a; --gruen: #1f7a48; --gruenbg: rgba(31,122,72,.08); --linie: #ddd9cd;
 }
-
-@layer base {
+@supports (color: light-dark(#000, #fff)) {
   :root {
-    color-scheme: dark;
-    --bg: #14161c;
-    --flaeche: #1e2129;
-    --flaeche-hell: #2a2e39;
-    --text: #e8e6df;
-    --gedimmt: #9a978e;
-    --akzent: #d9a441;
-    --gruen: #7fb069;
-    --linie: #33363f;
+    --bg: light-dark(#f3f1ea, #0e131d);
+    --karte: light-dark(#ffffff, #16202e);
+    --karte2: light-dark(#edeae1, #1e2a3b);
+    --text: light-dark(#1e2733, #e9edf4);
+    --dim: light-dark(#5b6575, #97a3b6);
+    --blau: light-dark(#1d4f9e, #82abec);
+    --btn: light-dark(#1d4f9e, #2f5fae);
+    --gold: light-dark(#99700e, #e6b73c);
+    --goldbg: light-dark(rgba(153,112,14,.08), rgba(230,183,60,.12));
+    --rot: light-dark(#bd3a2a, #e2705f);
+    --gruen: light-dark(#1f7a48, #7cc794);
+    --gruenbg: light-dark(rgba(31,122,72,.08), rgba(124,199,148,.14));
+    --linie: light-dark(#ddd9cd, #263449);
   }
-  body { background: var(--bg); color: var(--text); min-height: 100svh; }
-  main { max-width: 34rem; margin-inline: auto; padding: 1.25rem 1.25rem 3rem; }
-  a.zurueck { color: var(--gedimmt); text-decoration: none; font-size: 0.9rem; }
-  a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
-  header.kopf { text-align: center; margin-block: 1rem 1.5rem; }
-  .siegel { font-size: 2.4rem; display: block; margin-bottom: 0.4rem; }
-  h1 { font-size: 1.35rem; letter-spacing: 0.05em; margin: 0; color: var(--akzent); text-transform: uppercase; }
-  .untertitel { color: var(--gedimmt); margin-top: 0.3rem; font-size: 0.92rem; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+}
+a { color: var(--blau); } a:hover { color: var(--gold); }
+input::placeholder { color: var(--dim); opacity: .65; }
+summary { list-style: none; cursor: pointer; } summary::-webkit-details-marker { display: none; }
+:where(button, input) { font: inherit; }
+:where(button, input, summary, a):focus-visible { outline: 2px solid var(--blau); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  :where(.karte, button, input, .chip, .beute, .banner) { border: 1px solid CanvasText; }
 }
 
-@layer components {
-  .inhalte { display: grid; gap: 1rem; margin-top: 1.5rem; }
+/* ── Kopfzeile ── */
+header { position: sticky; top: 0; z-index: 40; background: var(--karte); border-bottom: 1px solid var(--linie); }
+.kopf-innen { max-width: 30rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; }
+.logo-pille { background: #ffffff; border: 1px solid var(--linie); border-radius: 10px; padding: 4px 10px; display: flex; align-items: center; }
+.logo-pille img { height: 30px; width: auto; display: block; }
+.thema-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linie); background: var(--karte2); color: var(--text); cursor: pointer; font-size: 14px; }
+.thema-btn:hover { border-color: var(--gold); }
 
-  .raetsel {
-    background: var(--flaeche);
-    border: 1px solid var(--linie);
-    border-radius: 10px;
-    padding: 1.1rem 1.25rem;
-  }
-  .raetsel.geloest { border-color: var(--gruen); }
-  .raetsel h2 { font-size: 1.05rem; margin: 0 0 0.6rem; color: var(--akzent); }
-  .raetsel img { border-radius: 8px; margin-bottom: 0.75rem; }
-  .raetsel .auftrag { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+main { max-width: 30rem; margin: 0 auto; padding: 16px 16px 156px; }
+.zurueck { background: none; border: none; padding: 8px 0; color: var(--dim); font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.zurueck:hover { color: var(--blau); }
+.raum-kopf { text-align: center; margin: 8px 0 20px; }
+.raum-kopf .icon { font-size: 36px; display: block; margin-bottom: 4px; }
+.raum-kopf h1 { margin: 0; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; color: var(--blau); }
+.raum-kopf .ort { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+.raum-intro { margin: 10px 0 0; text-align: center; color: var(--dim); font-size: 14px; }
 
-  .geheimtext {
-    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-    font-size: 1.6rem;
-    letter-spacing: 0.35em;
-    text-align: center;
-    color: var(--akzent);
-    background: var(--bg);
-    border: 1px dashed var(--akzent);
-    border-radius: 8px;
-    padding: 0.7rem 0.5rem;
-    margin: 0 0 0.75rem;
-  }
+/* ── Wächter-Banner: Hinweis statt Rauswurf — blockiert nie den Spielfluss ── */
+.banner { display: none; margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--gold); background: var(--goldbg); border-radius: 14px; font-size: 14.5px; }
+.banner.sichtbar { display: block; }
+.banner a { font-weight: 700; }
 
-  details.hinweis { margin: 0 0 0.75rem; font-size: 0.9rem; }
-  details.hinweis summary {
-    color: var(--gedimmt);
-    cursor: pointer;
-    padding: 0.3rem 0;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  details.hinweis summary:hover, details.hinweis summary:focus-visible { color: var(--akzent); }
-  details.hinweis[open] summary { color: var(--akzent); }
-  details.hinweis p {
-    margin: 0.4rem 0 0.2rem;
-    padding: 0.6rem 0.9rem;
-    border-left: 2px solid var(--akzent);
-    background: var(--bg);
-    border-radius: 0 8px 8px 0;
-    font-style: italic;
-  }
+.inhalt { display: grid; gap: 14px; }
+.karte { background: var(--karte); border: 1px solid var(--linie); border-radius: 14px; padding: 18px; }
+.karte h2 { font-size: 16px; margin: 0 0 10px; color: var(--gold); }
+.geloest-chip { float: right; font-size: 13px; color: var(--gruen); display: none; }
+.raetsel.ist-geloest .geloest-chip { display: inline; }
+.werk-bild { width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; display: block; }
+.frage { margin: 0 0 12px; color: var(--dim); font-size: 15px; }
+.antwort-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.antwort-form input { flex: 1; min-width: 6rem; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--linie); background: var(--bg); color: var(--text); text-transform: uppercase; letter-spacing: .1em; }
+.antwort-form input.nummer { flex: 0 1 auto; width: 6.5ch; text-align: center; letter-spacing: .15em; padding: 10px 6px; text-transform: none; }
+.antwort-form input:focus { border-color: var(--blau); }
+.salz-deko { color: var(--gold); font-weight: 700; }
+.primar { min-height: 48px; padding: 10px 16px; border-radius: 10px; border: none; background: var(--btn); color: #ffffff; font-weight: 600; cursor: pointer; }
+.primar:active { opacity: .85; }
+.primar[disabled] { opacity: .6; cursor: wait; }
+.meldung { min-height: 1.4em; margin: 8px 0 0; font-size: 14px; color: var(--rot); }
+.fertig-text { color: var(--gruen); font-weight: 700; margin: 4px 0 0; display: none; }
+.raetsel.ist-geloest .fertig-text { display: block; }
 
-  .antwort-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-  .antwort-form .fix { color: var(--akzent); font-weight: 600; letter-spacing: 0.05em; }
-  .antwort-form input {
-    font: inherit;
-    flex: 1;
-    min-width: 7rem;
-    padding: 0.55rem 0.8rem;
-    border-radius: 8px;
-    border: 1px solid var(--linie);
-    background: var(--bg);
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .antwort-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
-  .antwort-form button {
-    font: inherit;
-    min-height: 48px;
-    padding: 0.55rem 1.1rem;
-    border-radius: 8px;
-    border: 1px solid var(--linie);
-    background: var(--flaeche-hell);
-    color: var(--text);
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .antwort-form button:hover, .antwort-form button:focus-visible { border-color: var(--akzent); }
-  .antwort-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+.gruen-bestaetigung { color: var(--gruen); font-weight: 700; margin: 0 0 10px; font-size: 14px; }
+/* Stufen erscheinen erst nach richtiger vorheriger Antwort */
+.stufe2, .stufe3 { display: none; padding: 12px 14px; border-left: 3px solid var(--gold); background: var(--karte2); border-radius: 0 10px 10px 0; }
+.stufe2 .frage-kursiv, .stufe3 .frage-kursiv { margin: 0 0 10px; font-style: italic; font-size: 15px; color: var(--text); }
+.raetsel.ist-stufe2 .stufe1 { display: none; }
+.raetsel.ist-stufe2 .stufe2 { display: block; }
+.raetsel.ist-stufe3 .stufe1, .raetsel.ist-stufe3 .stufe2 { display: none; }
+.raetsel.ist-stufe3 .stufe3 { display: block; }
+.raetsel.ist-geloest .stufe1, .raetsel.ist-geloest .stufe2, .raetsel.ist-geloest .stufe3 { display: none; }
 
-  .meldung { min-height: 1.4em; margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--gedimmt); }
+.tipp { margin-top: 10px; }
+.tipp summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--gold); border-radius: 10px; background: var(--goldbg); color: var(--gold); font-weight: 600; font-size: 14px; }
+.tipp-text { margin: 8px 0 2px; padding: 10px 14px; border-left: 3px solid var(--gold); background: var(--karte2); border-radius: 0 10px 10px 0; font-style: italic; font-size: 14px; }
+.hilfe-ruf { color: var(--gold); font-weight: 600; font-size: 14px; margin: 4px 0 0; }
+summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animation: tipp-puls .5s ease 2; }
+@keyframes tipp-puls { 50% { transform: scale(1.04); } }
+.hilfe2 { margin-top: 8px; }
+.hilfe2-knopf { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--gold); border-radius: 10px; background: var(--goldbg); color: var(--gold); font-weight: 600; font-size: 14px; cursor: pointer; }
 
-  .stufe2 {
-    margin-top: 0.9rem;
-    padding: 0.9rem 1rem;
-    border-left: 2px solid var(--akzent);
-    background: var(--bg);
-    border-radius: 0 8px 8px 0;
-  }
-  .stufe2 .folgefrage { margin: 0 0 0.7rem; font-style: italic; }
+.beute { display: none; border: 1px solid var(--gold); background: var(--goldbg); border-radius: 14px; padding: 18px; text-align: center; }
+.beute.sichtbar { display: block; }
+.beute p { margin: 0; color: var(--gold); font-weight: 700; white-space: pre-line; }
 
-  .geloest-text { color: var(--gruen); font-weight: 600; margin: 0.75rem 0 0; }
+/* ── Bottom-Bar ── */
+.leiste { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; border-top: 1px solid var(--linie); background: var(--karte); padding: 10px 14px 12px; }
+.leiste-innen { max-width: 30rem; margin: 0 auto; display: grid; gap: 6px; }
+.leiste-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.leiste-label { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 700; min-width: 6.4rem; }
+.chip { display: inline-flex; align-items: center; min-height: 28px; padding: 2px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .05em; border: 1px dashed var(--linie); color: var(--dim); }
+.chip.voll { border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); }
+.chip.cw.voll { border-color: var(--gruen); background: var(--gruenbg); color: var(--gruen); }
 
-  .beute {
-    border: 1px solid var(--akzent);
-    background: rgba(217, 164, 65, 0.08);
-    border-radius: 10px;
-    padding: 1.1rem 1.25rem;
-    text-align: center;
-  }
-  .beute p { margin: 0; color: var(--akzent); font-weight: 600; }
-
-  /* Zeitungsausschnitt — Belohnung nach gelöstem Rätsel */
-  .artikel-papier {
-    background: #f2ead6;
-    color: #2a2620;
-    font-family: Georgia, "Times New Roman", serif;
-    border-radius: 8px;
-    padding: 1rem 1.1rem;
-    margin-top: 0.9rem;
-    box-shadow: inset 0 0 30px rgba(90, 70, 40, 0.15);
-  }
-  .artikel-kopf {
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #7a6c52;
-    margin: 0 0 0.4rem;
-    border-bottom: 1px solid #c9bda0;
-    padding-bottom: 0.3rem;
-  }
-  .artikel-papier h3 { font-size: 1.15rem; margin: 0 0 0.5rem; line-height: 1.25; }
-  .artikel-papier p.text { font-size: 0.9rem; margin: 0 0 0.5rem; text-align: justify; hyphens: auto; }
-  .artikel-papier p.text:last-child { margin-bottom: 0; }
-
-  a.karte {
-    display: block;
-    background: var(--flaeche);
-    border: 1px solid var(--linie);
-    border-radius: 10px;
-    padding: 1.1rem 1.25rem;
-    color: inherit;
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    transition: border-color 0.2s ease;
-  }
-  a.karte:hover, a.karte:focus-visible { border-color: var(--akzent); }
-  a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
-  .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
-  .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
+@media (max-width: 380px) {
+  .antwort-form { flex-direction: column; align-items: stretch; }
+  .antwort-form input, .antwort-form input.nummer, .antwort-form .primar { width: 100%; }
 }
 </style>
 </head>
 <body>
+<header>
+  <div class="kopf-innen">
+    <div class="logo-pille"><img src="Gesamtschule_Hagen-Haspe.jpg" alt="Gesamtschule Haspe"></div>
+    <button type="button" id="themaBtn" class="thema-btn" aria-label="Hell/Dunkel umschalten">🌙 Dunkel</button>
+  </div>
+</header>
+
 <main>
   <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
-  <header class="kopf">
-    <span class="siegel" aria-hidden="true">🪶</span>
+  <div class="raum-kopf">
+    <span class="icon" aria-hidden="true">🪶</span>
     <h1>Raum 1</h1>
-    <p class="untertitel">Das Hauptgebäude</p>
-  </header>
+    <p class="ort">Die zwei Wandbilder</p>
+    <p class="raum-intro">Ein Gebäude – zwei Seiten – zwei Botschaften. Ein Wandbild liegt am Haupteingang, das andere auf der gegenüberliegenden Schulhofseite.</p>
+  </div>
 
-  <div class="inhalte">
-    <section class="raetsel" data-key="r1a">
-      <h2>🪽 Die Flügel</h2>
-      <img src="werk_fluegel.jpg" alt="Bunte Flügel an einer Wand im Hauptgebäude" width="600" height="388">
-      <p class="auftrag">Findet diesen Ort. Wer davor steht, bekommt Flügel — und wer genau
-        hinsieht, entdeckt eine Signatur. Vervollständigt sie:</p>
-      <form class="antwort-form" data-stufe="1" data-salz="r1a" autocomplete="off"
-            data-hashes="f6c452b0b06132f112f3d6ef3a649c2dd8424062bb043b77e51e4633f3909f03,33f1e1fe696dcb8af88c9a68a95d00cda6e5fbfb8e57d793d7d006914badf37b,3dc564917e9475c036d6815537be50df93bc0491853b74005f75ee8cbe88e876,2b7c17b3637e157c27ad6f649b6561097fdb6026001c28f3e97aecedeef20290"
-            data-fehltext="Die Wand kennt ein anderes Wort — seht noch einmal nach.">
-        <span class="fix" aria-hidden="true">#</span>
-        <label for="r1a-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Fehlendes Wort der Signatur</label>
-        <input id="r1a-eingabe" maxlength="10" placeholder="_______" required>
-        <span class="fix" aria-hidden="true">.AG</span>
-        <button type="submit">Prüfen</button>
-      </form>
-      <div class="stufe2" hidden>
-        <p class="folgefrage">Die Signatur stimmt. Nun die Archiv-Frage:
-          In welchem Jahr feierte unsere Schule ihren ersten Abi-Jahrgang?
-          <em>Der Zeitungsausschnitt im Altbau-Archiv (hinter Tür 2) verrät es.</em></p>
-        <form class="antwort-form" data-stufe="2" data-salz="r1a2" autocomplete="off"
-              data-hashes="0dad381ba3e5cc0f24c3d6d5445b89f9b3e8dfac2ad0c99035e788d72362cb01"
-              data-fehltext="Das Archiv schweigt — dieses Jahr ist es nicht.">
-          <label for="r1a2-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahr des ersten Abi-Jahrgangs</label>
-          <input id="r1a2-eingabe" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
-          <button type="submit">Prüfen</button>
+  <div class="banner" id="banner">
+    🔒 Diese Tür ist noch verschlossen. Löst zuerst die Frage auf der Türwand — dann gehört dieser Raum euch.
+    <a href="index.html">→ Zur Türwand</a>
+  </div>
+
+  <div class="inhalt">
+
+    <section class="karte raetsel" data-basis="r1a">
+      <h2>🪽 Die Flügel <span class="geloest-chip">✓ gelöst</span></h2>
+      <img class="werk-bild" src="werk_fluegel.jpg" alt="Bunte Flügel an einer Wand im Hauptgebäude">
+      <div class="stufe1">
+        <p class="frage">Am Haupteingang warten große Flügel. Findet das Bild und lest die Signatur. Welches Wort steht zwischen # und .AG?</p>
+        <form class="antwort-form" data-salz="r1a" autocomplete="off">
+          <span class="salz-deko" aria-hidden="true">#</span>
+          <input aria-label="Fehlendes Wort der Signatur" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="10" placeholder="_______" required>
+          <span class="salz-deko" aria-hidden="true">.AG</span>
+          <button type="submit" class="primar">Prüfen</button>
         </form>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Das Wort ist direkt am Bild gut lesbar.</p>
+        </details>
+      </div>
+      <div class="stufe2">
+        <p class="gruen-bestaetigung">✓ Die Vorderseite gibt ihr Geheimnis frei.</p>
+        <p class="frage-kursiv">Die Flügel führen euch in die Geschichte der Schule. In welchem Jahr feierte die Schule ihren ersten eigenen Abiturjahrgang?</p>
+        <form class="antwort-form" data-salz="r1a2" autocomplete="off">
+          <input class="nummer" aria-label="Jahr des ersten Abiturjahrgangs" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="····" required>
+          <button type="submit" class="primar">Prüfen</button>
+        </form>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Die Antwort steht in einem Zeitungsausschnitt aus Raum 2.</p>
+        </details>
       </div>
       <p class="meldung" aria-live="polite"></p>
-      <p class="geloest-text" hidden>✓ Die Flügel haben gesprochen.</p>
+      <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+      <p class="fertig-text">✓ Der erste Abiturjahrgang ist gefunden.</p>
     </section>
 
-    <section class="raetsel" data-key="r1b">
-      <h2>🎨 Die Wand der Worte</h2>
-      <img src="werk_respekt.jpg" alt="Graffiti-Wand mit dem Wort Respect und weiteren Begriffen, ein Wort ist übermalt" width="600" height="328">
-      <p class="auftrag">Diese Wand spricht viele Worte — doch eines wurde übermalt.
-        Findet die Wand und lest, was dort wirklich steht:</p>
-      <form class="antwort-form" data-stufe="1" data-salz="r1b" autocomplete="off"
-            data-hashes="83eb36e388db462ef886a9e653917ddf9335473d008c7267e831738a694d0bc0"
-            data-fehltext="Das übermalte Wort lautet anders — geht näher heran.">
-        <label for="r1b-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Das übermalte Wort</label>
-        <input id="r1b-eingabe" maxlength="12" placeholder="DAS WORT" required>
-        <button type="submit">Prüfen</button>
-      </form>
-      <div class="stufe2" hidden>
-        <p class="folgefrage">Richtig. Und nun: Wie heißt unsere heutige Schulleiterin?
-          Ihr Name reimt sich auf eines der Worte an dieser Wand.</p>
-        <form class="antwort-form" data-stufe="2" data-salz="r1b2" autocomplete="off"
-              data-hashes="e6093be7b02c9a8f5eaf1b1475757ca48b1eb0fa41f53fbd443dcb01a0375fa1"
-              data-fehltext="So heißt sie nicht — lauscht dem Reim.">
-          <label for="r1b2-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Name der Schulleiterin</label>
-          <input id="r1b2-eingabe" maxlength="20" placeholder="NAME" required>
-          <button type="submit">Prüfen</button>
+    <section class="karte raetsel" data-basis="r1b">
+      <h2>🎨 Die Wand der Worte <span class="geloest-chip">✓ gelöst</span></h2>
+      <img class="werk-bild" src="werk_respekt.jpg" alt="Graffiti-Wand mit dem Wort Respect, ein Wort ist übermalt">
+      <div class="stufe1">
+        <p class="frage">Auf der gegenüberliegenden Schulhofseite befindet sich das zweite Wandbild. Welches Wort wurde übermalt?</p>
+        <form class="antwort-form" data-salz="r1b" autocomplete="off">
+          <input aria-label="Das übermalte Wort" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="12" placeholder="DAS WORT" required>
+          <button type="submit" class="primar">Prüfen</button>
         </form>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Geht auf die andere Seite derselben Gebäudewand.</p>
+        </details>
+      </div>
+      <div class="stufe2">
+        <p class="gruen-bestaetigung">✓ Die Wand gibt das übermalte Wort frei.</p>
+        <p class="frage-kursiv">Unsere Schule trägt den Titel „Schule ohne Rassismus – Schule mit Courage". Ein Wort an der Wand — direkt neben RESPEKT — steht genau dafür. Welches?</p>
+        <form class="antwort-form" data-salz="r1b2" autocomplete="off">
+          <input aria-label="Das Wort neben Respekt" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="12" placeholder="DAS WORT" required>
+          <button type="submit" class="primar">Prüfen</button>
+        </form>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Das Wort beschreibt einen respektvollen Umgang miteinander.</p>
+        </details>
+      </div>
+      <div class="stufe3">
+        <p class="gruen-bestaetigung">✓ Toleranz steht an der Wand — und im Programm der Schule.</p>
+        <p class="frage-kursiv">Und die Gegenwart? Toleranz reimt sich auf den Nachnamen unserer heutigen Schulleiterin. Wie heißt sie?</p>
+        <form class="antwort-form" data-salz="r1b3" autocomplete="off">
+          <input aria-label="Name der Schulleiterin" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="20" placeholder="NAME" required>
+          <button type="submit" class="primar">Prüfen</button>
+        </form>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Der Reim verrät fast alles: Tole-ranz → F…</p>
+        </details>
       </div>
       <p class="meldung" aria-live="polite"></p>
-      <p class="geloest-text" hidden>✓ Die Wand hat ihr Geheimnis preisgegeben.</p>
+      <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+      <p class="fertig-text">✓ Auch die Gegenwart hat einen Namen: Frau Franz.</p>
     </section>
 
-    <div class="beute" hidden data-b64="8J+nrSBGVU5EU1TDnENLIOKAlCBEZXIgZXJzdGUgVGVpbCBkZXMgWmllbG9ydHMgbGllZ3QgZnJlaTogTkVVQkFVLiBUcmFndCBpaG4gYXVmIGV1cmVtIEVyZ2VibmlzemV0dGVsIGVpbi4="><p></p></div>
+    <div class="beute" id="beute"><p></p></div>
   </div>
 </main>
 
+<div class="leiste">
+  <div class="leiste-innen">
+    <div class="leiste-zeile"><span class="leiste-label">🧭 Zielort</span><span class="chip" data-zchip="raum1">?</span><span class="chip" data-zchip="raum2">?</span><span class="chip" data-zchip="raum3">?</span><span class="chip" data-zchip="raum4">?</span></div>
+    <div class="leiste-zeile"><span class="leiste-label">🔑 Codewort</span><span class="chip cw" data-cchip="raum1">?</span><span class="chip cw" data-cchip="raum2">?</span><span class="chip cw" data-cchip="raum3">?</span><span class="chip cw" data-cchip="raum4">?</span></div>
+  </div>
+</div>
+
 <script>
-(() => {
+(function () {
   'use strict';
 
-  // Gesalzener SHA-256 — Lösungen stehen nirgends im Klartext.
+  var RAUM = 'raum1';
+  var TUER_KEY = 'sf_tuer1';
+  var BASEN = ['r1a', 'r1b'];
+  /* Stufen-Ketten: Folgestatus nach richtiger Antwort — fehlt ein Eintrag, ist das Rätsel gelöst.
+     r1b läuft dreistufig: übermaltes Wort → Toleranz (Courage) → Frau Franz (Gegenwart). */
+  var FOLGE = { r1a: 'stufe2', r1b: 'stufe2', r1b2: 'stufe3' };
+
+  /* Lösungs-Hashes (Vertrag wie Original — nicht ändern!) */
+  var HASHES = {
+    r1a: [
+      'f6c452b0b06132f112f3d6ef3a649c2dd8424062bb043b77e51e4633f3909f03',
+      '33f1e1fe696dcb8af88c9a68a95d00cda6e5fbfb8e57d793d7d006914badf37b',
+      '3dc564917e9475c036d6815537be50df93bc0491853b74005f75ee8cbe88e876',
+      '2b7c17b3637e157c27ad6f649b6561097fdb6026001c28f3e97aecedeef20290'
+    ],
+    r1a2: ['86f2b8e7422a7741fd26d5d4c7af0bad597b6bc3a17aed5ca1b46b7c0c5494b9'],
+    r1b: ['83eb36e388db462ef886a9e653917ddf9335473d008c7267e831738a694d0bc0'],
+    r1b2: ['10b00ffa09aad042ee9b4bea25e6db916c91de3cbe6ca28d707b45383c72cffd'],
+    r1b3: ['76c5d635f4eedefe2683f5916de8f0dd9fa1d5b9c72f9c8774ee993806e9324a']
+  };
+
+  var FEHLERTEXTE = {
+    r1a: 'Die Signatur enthält ein anderes Wort. Lest sie noch einmal genau.',
+    r1a2: 'Im Zeitungsausschnitt steht ein anderes Jahr.',
+    r1b: 'Auf der Wand ist ein anderes Wort übermalt.',
+    r1b2: 'Nicht dieses — das gesuchte Wort steht neben RESPEKT.',
+    r1b3: 'So heißt sie nicht — hört auf den Reim.'
+  };
+
+  var BEUTE = {
+    raum1: 'RnVuZHN0w7xjayAxIHZvbiA0CgpaaWVsb3J0LVRlaWw6IE5FVQpDb2Rld29ydC1UZWlsOiBKVUIKClRyYWd0IGJlaWRlIFRlaWxlIGluIEZlbGQgMSBlaW4u',
+    raum2: 'RnVuZHN0w7xjayAyIHZvbiA0CgpaaWVsb3J0LVRlaWw6IEJBVQpDb2Rld29ydC1UZWlsOiBJTMOEVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAyIGVpbi4=',
+    raum3: 'RnVuZHN0w7xjayAzIHZvbiA0CgpaaWVsb3J0LVRlaWw6IFJBVU0KQ29kZXdvcnQtVGVpbDogTVNLVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAzIGVpbi4=',
+    raum4: 'RnVuZHN0w7xjayA0IHZvbiA0CgpaaWVsb3J0LVRlaWw6IDIzCkNvZGV3b3J0LVRlaWw6IENIRU4KClNldHp0IGpldHp0IGFsbGUgVGVpbGUgaW4gZGVyIHJpY2h0aWdlbiBSZWloZW5mb2xnZSB6dXNhbW1lbi4='
+  };
+  var RAUM_KEYS = { raum1: ['r1a', 'r1b'], raum2: ['r2a', 'r2b'], raum3: ['r3a', 'r3b'], raum4: ['r4a', 'r4b'] };
+
+  /* ── Sichere Speicher-Helfer: blockierter Speicher darf den Spielfluss nie stoppen ── */
+  function sGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function sSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+
+  /* ── Theme ── */
+  var themaBtn = document.getElementById('themaBtn');
+  var dunkel = (function () {
+    var s = sGet('sf_theme');
+    if (s) return s === 'dunkel';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  })();
+  function themaAnwenden() {
+    document.documentElement.style.colorScheme = dunkel ? 'dark' : 'light';
+    themaBtn.textContent = dunkel ? '☀️ Hell' : '🌙 Dunkel';
+  }
+  themaAnwenden();
+  themaBtn.addEventListener('click', function () {
+    dunkel = !dunkel;
+    sSet('sf_theme', dunkel ? 'dunkel' : 'hell');
+    themaAnwenden();
+  });
+
+  /* ── Wächter als Hinweis, nie als Rauswurf (#offen = kommt von gerade gelöster Tür) ── */
+  if (sGet(TUER_KEY) !== 'offen' && location.hash !== '#offen') {
+    document.getElementById('banner').classList.add('sichtbar');
+  }
+
+  /* ── Hash-Prüfung (Salz-Vertrag wie Original — nicht ändern!) ── */
   async function loesungsHash(wert, salz) {
-    const data = new TextEncoder().encode(wert + '\u00b7' + salz + '\u00b7schulfest');
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    var data = new TextEncoder().encode(wert + '·' + salz + '·schulfest');
+    var buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
   }
-
   function normalisiere(s) {
-    return s.trim().toUpperCase().normalize('NFC')
-      .replace(/^(FRAU|HERR)\s+/, '');
+    return s.trim().toUpperCase().normalize('NFC').replace(/^(FRAU|HERR)\s+/, '');
+  }
+  function decodiereB64(b64) {
+    try {
+      return new TextDecoder().decode(Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }));
+    } catch (e) { return ''; }
   }
 
-  function zeigeGeloest(raetsel) {
-    raetsel.classList.add('geloest');
-    raetsel.querySelectorAll('form, .stufe2').forEach(el => el.hidden = true);
-    raetsel.querySelector('.geloest-text').hidden = false;
+  /* ── Fundstück-Chips ── */
+  function chipsAktualisieren() {
+    Object.keys(RAUM_KEYS).forEach(function (raum) {
+      var fertig = RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
+      var text = fertig ? decodiereB64(BEUTE[raum]) : '';
+      var mz = text.match(/Zielort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+      var mc = text.match(/Codewort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+      var z = document.querySelector('[data-zchip="' + raum + '"]');
+      var c = document.querySelector('[data-cchip="' + raum + '"]');
+      if (z) {
+        if (fertig && mz) { z.textContent = mz[1]; z.classList.add('voll'); }
+        else { z.textContent = '?'; z.classList.remove('voll'); }
+      }
+      if (c) {
+        if (fertig && mc) { c.textContent = mc[1]; c.classList.add('voll'); }
+        else { c.textContent = '?'; c.classList.remove('voll'); }
+      }
+    });
+  }
 
-    // Belohnungs-Zeitungsausschnitt dieses Rätsels aufdecken (kodiert abgelegt)
-    const artikel = raetsel.querySelector('.artikel');
-    if (artikel && artikel.hidden) {
-      const roh = Uint8Array.from(atob(artikel.dataset.b64), c => c.charCodeAt(0));
-      const ziel = artikel.querySelector('.artikel-text');
-      new TextDecoder().decode(roh).split('\n\n').forEach(abs => {
-        const p = document.createElement('p');
-        p.className = 'text';
-        p.textContent = abs;
-        ziel.appendChild(p);
-      });
-      artikel.hidden = false;
+  /* ── Rätsel-Zustand rendern ── */
+  var stand = {};
+  function leseStand() {
+    BASEN.forEach(function (b) { stand[b] = sGet('sf_' + b); });
+  }
+  function zeigeRaetsel() {
+    BASEN.forEach(function (b) {
+      var karte = document.querySelector('.raetsel[data-basis="' + b + '"]');
+      karte.classList.toggle('ist-stufe2', stand[b] === 'stufe2');
+      karte.classList.toggle('ist-stufe3', stand[b] === 'stufe3');
+      karte.classList.toggle('ist-geloest', stand[b] === 'geloest');
+    });
+  }
+
+  /* ── Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind ── */
+  function pruefeBeute(mitScroll) {
+    var fertig = BASEN.every(function (b) { return stand[b] === 'geloest'; });
+    var beute = document.getElementById('beute');
+    if (!fertig || beute.classList.contains('sichtbar')) return;
+    beute.querySelector('p').textContent = decodiereB64(BEUTE[RAUM]);
+    beute.classList.add('sichtbar');
+    if (mitScroll) {
+      var ruhig = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      beute.scrollIntoView({ behavior: ruhig ? 'auto' : 'smooth', block: 'center' });
     }
   }
 
-  // Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind.
-  // Text liegt kodiert vor, damit der Quelltext nichts verrät.
-  function pruefeBeute() {
-    const beute = document.querySelector('.beute');
-    if (!beute || !beute.hidden) return;
-    const alle = [...document.querySelectorAll('.raetsel')].every(r => r.classList.contains('geloest'));
-    if (alle) {
-      const roh = Uint8Array.from(atob(beute.dataset.b64), c => c.charCodeAt(0));
-      beute.querySelector('p').textContent = new TextDecoder().decode(roh);
-      beute.hidden = false;
-    }
-  }
-
-  document.querySelectorAll('.raetsel').forEach(raetsel => {
-    const key = raetsel.dataset.key;
-
-    let stand = null;
-    try { stand = localStorage.getItem('sf_' + key); } catch (e) {}
-    if (stand === 'geloest') zeigeGeloest(raetsel);
-    else if (stand === 'stufe2' && raetsel.querySelector('.stufe2')) {
-      raetsel.querySelector('form[data-stufe="1"]').hidden = true;
-      raetsel.querySelector('.stufe2').hidden = false;
-    }
-
-    raetsel.querySelectorAll('form').forEach(form => {
-      form.addEventListener('submit', async (ev) => {
-        ev.preventDefault();
-        const input = form.querySelector('input');
-        const meldung = raetsel.querySelector('.meldung');
-        const wert = normalisiere(input.value);
-        const hashes = form.dataset.hashes.split(',');
-        const treffer = await loesungsHash(wert, form.dataset.salz);
-
-        if (hashes.includes(treffer)) {
+  /* ── Prüf-Handler + gestufte Tipps (§11: ab 2. Fehlversuch Tipp betonen, ab 4. deutlichere Hilfe) ── */
+  var versuche = {};
+  document.querySelectorAll('.antwort-form').forEach(function (form) {
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var salz = form.dataset.salz;
+      var basis = salz.replace(/[23]$/, '');
+      if (!HASHES[salz]) return;
+      var karte = form.closest('.raetsel');
+      var input = form.querySelector('input');
+      var knopf = form.querySelector('.primar');
+      var meldung = karte.querySelector('.meldung');
+      knopf.disabled = true;
+      try {
+        var h = await loesungsHash(normalisiere(input.value), salz);
+        if (HASHES[salz].indexOf(h) !== -1) {
+          var neu = FOLGE[salz] || 'geloest';
+          stand[basis] = neu;
+          sSet('sf_' + basis, neu);
           meldung.textContent = '';
-          const stufe2 = raetsel.querySelector('.stufe2');
-          if (form.dataset.stufe === '1' && stufe2) {
-            form.hidden = true;
-            stufe2.hidden = false;
-            try { localStorage.setItem('sf_' + key, 'stufe2'); } catch (e) {}
-            stufe2.querySelector('input').focus();
-          } else {
-            try { localStorage.setItem('sf_' + key, 'geloest'); } catch (e) {}
-            zeigeGeloest(raetsel);
-            pruefeBeute();
-          }
+          var ruf = karte.querySelector('.hilfe-ruf');
+          if (ruf) ruf.hidden = true;
+          zeigeRaetsel();
+          pruefeBeute(true);
+          chipsAktualisieren();
         } else {
-          meldung.textContent = form.dataset.fehltext || 'Noch nicht — schaut genauer hin.';
+          versuche[salz] = (versuche[salz] || 0) + 1;
+          meldung.textContent = FEHLERTEXTE[salz] || 'Noch nicht. Schaut noch einmal genau hin.';
+          if (versuche[salz] >= 2) {
+            var ruf2 = karte.querySelector('.hilfe-ruf');
+            if (ruf2) ruf2.hidden = false;
+            var block = form.closest('.stufe1, .stufe2, .stufe3') || karte;
+            var tippKnopf = block.querySelector('.tipp summary') || karte.querySelector('.tipp summary');
+            if (tippKnopf) tippKnopf.classList.add('betont');
+          }
+          if (versuche[salz] >= 4) {
+            var deutlich = karte.querySelector('.hilfe2');
+            if (deutlich) deutlich.hidden = false;
+          }
           input.select();
         }
-      });
+      } catch (e) {
+        meldung.textContent = 'Die Antwort konnte auf diesem Gerät nicht geprüft werden. Bitte zeigt die Meldung einem Helfer.';
+      } finally {
+        knopf.disabled = false;
+      }
     });
   });
 
-  pruefeBeute();
+  /* Deutlichere Hilfe (§11 Stufe 3) — nur an Stationen mit .hilfe2 */
+  document.querySelectorAll('.hilfe2-knopf').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.nextElementSibling.hidden = false;
+      b.hidden = true;
+    });
+  });
+
+  leseStand();
+  zeigeRaetsel();
+  pruefeBeute(false);
+  chipsAktualisieren();
+})();
+
+/* PWA: Offline-Netz — Registrierung network-first-doktrin-konform
+   (updateViaCache none + Update-Check bei Tab-Rückkehr · Drei-Löcher-Lehre) */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      if (reg) reg.update();
+    }).catch(function () {});
+  });
 })();
 </script>
 </body>

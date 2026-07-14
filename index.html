@@ -1,391 +1,493 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- DSGVO-Härtung (werkstatt-web-2026 · dsgvo/permissions-policy-default-block):
-     GitHub Pages erlaubt keine eigenen HTTP-Header → Meta-Variante (Chrome-partiell).
-     Werk nutzt ohnehin keine Sensoren, kein Netz nach Ladezeit, keine Cookies. -->
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-<meta name="theme-color" content="#14161c">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#0e131d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- GATE-ALLOW: PWA-Site auf GitHub Pages — manifest.webmanifest ist same-origin-Pflichtdatei und liegt im SW-Precache; kein CDN, kein Fremd-Origin -->
 <title>Escape Room · Schulfest</title>
+<script>
+/* Früh-Theme vor erstem Paint — verhindert Hell/Dunkel-Blitz */
+(function () {
+  try {
+    var s = localStorage.getItem('sf_theme');
+    if (s) document.documentElement.style.colorScheme = s === 'dunkel' ? 'dark' : 'light';
+  } catch (e) {}
+})();
+</script>
 <style>
-/* ╔═══ WERKSTATT-CSS-RESET 2026 (konservative Variante) ═══════════════╗
-   Basis: werkstatt-web-2026/werkstatt-default/css-reset-2026-werkstatt.md
-   Schwelle: Privat-Handy-Mix (Schulfest) → nur Widely-Available-Features.
-╚══════════════════════════════════════════════════════════════════════╝ */
-@layer reset, base, components;
-
-@layer reset {
-  *, *::before, *::after { box-sizing: border-box; }
-  /* hidden-Attribut muss jede display-Regel schlagen (Layer-Umkehr bei !important) */
-  [hidden] { display: none !important; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.55;
-    font-size: clamp(15px, 1rem + 0.2vw, 19px);
-  }
-  :where(h1, h2, h3) { text-wrap: balance; }
-  :where(p, li) { text-wrap: pretty; }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-  @media (forced-colors: active) {
-    :where(button, input, .tuer) { border: 1px solid CanvasText; }
-  }
+:root { color-scheme: light dark; }
+/* Fallback für Browser ohne light-dark(): helles Theme */
+:root {
+  --bg: #f3f1ea; --karte: #ffffff; --karte2: #edeae1; --text: #1e2733; --dim: #5b6575;
+  --blau: #1d4f9e; --btn: #1d4f9e; --gold: #99700e; --goldbg: rgba(153,112,14,.08);
+  --rot: #bd3a2a; --gruen: #1f7a48; --gruenbg: rgba(31,122,72,.08); --linie: #ddd9cd;
 }
-
-@layer base {
+@supports (color: light-dark(#000, #fff)) {
   :root {
-    color-scheme: dark;
-    --bg: #14161c;
-    --flaeche: #1e2129;
-    --flaeche-hell: #2a2e39;
-    --text: #e8e6df;
-    --gedimmt: #9a978e;
-    --akzent: #d9a441;        /* warmes Messing — Schatz, nicht Alarm */
-    --gruen: #7fb069;         /* geöffnete Tür */
-    --linie: #33363f;
+    --bg: light-dark(#f3f1ea, #0e131d);
+    --karte: light-dark(#ffffff, #16202e);
+    --karte2: light-dark(#edeae1, #1e2a3b);
+    --text: light-dark(#1e2733, #e9edf4);
+    --dim: light-dark(#5b6575, #97a3b6);
+    --blau: light-dark(#1d4f9e, #82abec);
+    --btn: light-dark(#1d4f9e, #2f5fae);
+    --gold: light-dark(#99700e, #e6b73c);
+    --goldbg: light-dark(rgba(153,112,14,.08), rgba(230,183,60,.12));
+    --rot: light-dark(#bd3a2a, #e2705f);
+    --gruen: light-dark(#1f7a48, #7cc794);
+    --gruenbg: light-dark(rgba(31,122,72,.08), rgba(124,199,148,.14));
+    --linie: light-dark(#ddd9cd, #263449);
   }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100svh;
-  }
-  main {
-    max-width: 34rem;
-    margin-inline: auto;
-    padding: 2rem 1.25rem 3rem;
-  }
-  header.kopf { text-align: center; margin-block: 1.5rem 2rem; }
-  .siegel { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
-  h1 {
-    font-size: 1.6rem;
-    letter-spacing: 0.06em;
-    margin: 0;
-    color: var(--akzent);
-    text-transform: uppercase;
-  }
-  .untertitel { color: var(--gedimmt); margin-top: 0.4rem; font-size: 0.95rem; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+}
+a { color: var(--blau); } a:hover { color: var(--gold); }
+input::placeholder { color: var(--dim); opacity: .65; }
+summary { list-style: none; cursor: pointer; } summary::-webkit-details-marker { display: none; }
+:where(button, input) { font: inherit; }
+:where(button, input, summary):focus-visible { outline: 2px solid var(--blau); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  :where(.karte, button, input, .chip, .beute) { border: 1px solid CanvasText; }
 }
 
-@layer components {
-  .tueren { display: grid; gap: 1rem; margin-top: 1.5rem; }
+/* ── Kopfzeile ── */
+header { position: sticky; top: 0; z-index: 40; background: var(--karte); border-bottom: 1px solid var(--linie); }
+.kopf-innen { max-width: 30rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; }
+.logo-pille { background: #ffffff; border: 1px solid var(--linie); border-radius: 10px; padding: 4px 10px; display: flex; align-items: center; }
+.logo-pille img { height: 30px; width: auto; display: block; }
+.thema-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linie); background: var(--karte2); color: var(--text); cursor: pointer; font-size: 14px; }
+.thema-btn:hover { border-color: var(--gold); }
 
-  .tuer {
-    background: var(--flaeche);
-    border: 1px solid var(--linie);
-    border-radius: 10px;
-    padding: 1.1rem 1.25rem;
-  }
-  .tuer.offen { border-color: var(--gruen); }
+main { max-width: 30rem; margin: 0 auto; padding: 20px 16px 156px; }
 
-  .tuer h2 {
-    font-size: 1.05rem;
-    margin: 0 0 0.35rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .tuer .schloss { font-size: 1.15rem; }
-  .tuer.offen .schloss-zu, .tuer:not(.offen) .schloss-auf { display: none; }
+/* ── Hero ── */
+.hero { text-align: center; margin: 20px 0 24px; }
+.hero-icon { font-size: 44px; display: block; margin-bottom: 6px; }
+.hero h1 { margin: 0; font-size: 24px; letter-spacing: .08em; text-transform: uppercase; color: var(--blau); }
+.hero .unterzeile { margin: 6px 0 0; color: var(--dim); font-size: 15px; }
+.fortschritt { display: inline-flex; align-items: center; gap: 6px; margin: 14px 0 0; padding: 4px 14px; border-radius: 999px; border: 1px solid var(--linie); background: var(--karte); color: var(--dim); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+.intro-titel { margin: 0 0 6px; text-align: center; font-weight: 700; font-size: 16px; }
+.intro { margin: 0 0 8px; text-align: center; color: var(--text); font-size: 15.5px; }
+.intro.leise { color: var(--dim); font-size: 14px; }
+.intro.leise:last-of-type { margin-bottom: 20px; }
+.meldung.gruen { color: var(--gruen); }
+.gruen-bestaetigung { color: var(--gruen); font-weight: 700; margin: 0 0 10px; font-size: 14px; }
+.hilfe-ruf { color: var(--gold); font-weight: 600; font-size: 14px; margin: 4px 0 0; }
+summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animation: tipp-puls .5s ease 2; }
+@keyframes tipp-puls { 50% { transform: scale(1.04); } }
+.hilfe2 { margin-top: 8px; }
+.hilfe2-knopf { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--gold); border-radius: 10px; background: var(--goldbg); color: var(--gold); font-weight: 600; font-size: 14px; cursor: pointer; }
+.abschluss { margin-top: 20px; border-color: var(--gruen); background: var(--gruenbg); text-align: center; }
+.abschluss .abschluss-titel { margin: 0 0 6px; color: var(--gruen); font-weight: 700; }
+.abschluss p { margin: 0 0 6px; font-size: 15px; }
+.abschluss .klein { color: var(--dim); font-size: 13px; font-style: italic; margin: 0; }
 
-  .tuer .frage { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+/* ── Tür-Karten ── */
+.tueren { display: grid; gap: 14px; }
+.karte { background: var(--karte); border: 1px solid var(--linie); border-radius: 14px; padding: 18px; }
+.karte-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.badge { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--gold); background: var(--goldbg); border-radius: 999px; padding: 2px 10px; }
+.karte-titel { flex: 1; font-weight: 700; font-size: 16px; }
+.schloss { font-size: 18px; }
+.offen-chip { font-size: 13px; font-weight: 700; color: var(--gruen); background: var(--gruenbg); border: 1px solid var(--gruen); border-radius: 999px; padding: 2px 10px; }
+.frage { margin: 0 0 12px; color: var(--dim); font-size: 15px; }
+.jahr-form { display: flex; gap: 8px; }
+.jahr-form input { width: 6.5ch; text-align: center; letter-spacing: .15em; padding: 10px 6px; border-radius: 10px; border: 1px solid var(--linie); background: var(--bg); color: var(--text); }
+.jahr-form input:focus { border-color: var(--blau); }
+.primar { flex: 1; min-height: 48px; padding: 10px 16px; border-radius: 10px; border: none; background: var(--btn); color: #ffffff; font-weight: 600; cursor: pointer; }
+.primar:active { opacity: .85; }
+.primar[disabled] { opacity: .6; cursor: wait; }
+.meldung { min-height: 1.4em; margin: 8px 0 0; font-size: 14px; color: var(--rot); }
+.betreten { display: none; width: 100%; min-height: 48px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--gruen); background: var(--gruenbg); color: var(--gruen); font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; align-items: center; justify-content: center; }
+.tuer.ist-offen .zu-bereich { display: none; }
+.tuer.ist-offen .betreten { display: flex; }
+.tuer.ist-offen .schloss { display: none; }
+.tuer:not(.ist-offen) .offen-chip { display: none; }
 
-  .jahr-form { display: flex; gap: 0.6rem; }
-  .jahr-form input {
-    font: inherit;
-    font-variant-numeric: tabular-nums;
-    width: 7ch;
-    text-align: center;
-    padding: 0.55rem 0.4rem;
-    border-radius: 8px;
-    border: 1px solid var(--linie);
-    background: var(--bg);
-    color: var(--text);
-    letter-spacing: 0.15em;
-  }
-  .jahr-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
-  .jahr-form button {
-    font: inherit;
-    flex: 1;
-    min-height: 48px;                 /* Touch-Target */
-    padding: 0.55rem 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--linie);
-    background: var(--flaeche-hell);
-    color: var(--text);
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .jahr-form button:hover, .jahr-form button:focus-visible { border-color: var(--akzent); }
-  .jahr-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+/* ── Tipp ── */
+.tipp { margin-top: 4px; }
+.tipp summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--gold); border-radius: 10px; background: var(--goldbg); color: var(--gold); font-weight: 600; font-size: 14px; }
+.tipp-text { margin: 8px 0 2px; padding: 10px 14px; border-left: 3px solid var(--gold); background: var(--karte2); border-radius: 0 10px 10px 0; font-style: italic; font-size: 14px; }
 
-  .meldung {
-    min-height: 1.4em;
-    margin: 0.6rem 0 0;
-    font-size: 0.9rem;
-    color: var(--gedimmt);
-  }
-  .tuer.offen .meldung { color: var(--gruen); }
+/* ── Unlösbare Frage + Reset ── */
+.unloesbar { margin-top: 20px; border-style: dashed; }
+.unloesbar h2 { font-size: 16px; margin: 0 0 8px; color: var(--blau); }
+.unloesbar .kursiv { margin: 0 0 6px; color: var(--dim); font-size: 14px; font-style: italic; }
+.unloesbar .frage-text { margin: 0; font-size: 15px; }
+.reset { margin-top: 24px; text-align: center; }
+.reset summary { display: inline-block; padding: 8px 14px; color: var(--dim); font-size: 14px; }
+.reset p { color: var(--dim); font-size: 14px; margin: 8px 0; }
+.reset button { min-height: 44px; padding: 8px 18px; border-radius: 10px; border: 1px solid var(--linie); background: var(--karte); color: var(--text); cursor: pointer; }
+.reset button:hover { border-color: var(--rot); color: var(--rot); }
 
-  /* Aufklappbarer Tipp je Tür — deutlich sichtbarer Button */
-  details.tipp { margin-top: 0.5rem; font-size: 0.9rem; }
-  details.tipp summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    min-height: 44px;
-    padding: 0.4rem 1rem;
-    border: 1px solid var(--akzent);
-    border-radius: 8px;
-    background: rgba(217, 164, 65, 0.1);
-    color: var(--akzent);
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  details.tipp summary::-webkit-details-marker { display: none; }
-  details.tipp summary:hover, details.tipp summary:focus-visible { background: rgba(217, 164, 65, 0.2); }
-  details.tipp summary:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
-  details.tipp p {
-    margin: 0.4rem 0 0.2rem;
-    padding: 0.7rem 0.9rem;
-    border-left: 2px solid var(--akzent);
-    background: var(--bg);
-    border-radius: 0 8px 8px 0;
-    color: var(--text);
-    font-style: italic;
-  }
-  .tuer.offen details.tipp { display: none; }   /* offene Tür braucht keinen Tipp mehr */
+/* ── Bottom-Bar ── */
+.leiste { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; border-top: 1px solid var(--linie); background: var(--karte); padding: 10px 14px 12px; }
+.leiste-innen { max-width: 30rem; margin: 0 auto; display: grid; gap: 6px; }
+.leiste-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.leiste-label { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 700; min-width: 6.4rem; }
+.chip { display: inline-flex; align-items: center; min-height: 28px; padding: 2px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .05em; border: 1px dashed var(--linie); color: var(--dim); }
+.chip.voll { border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); }
+.chip.cw.voll { border-color: var(--gruen); background: var(--gruenbg); color: var(--gruen); }
 
-  /* Freiwillige Zusatzfrage (ohne Prüfung — Sammlung in der Zentrale) */
-  .zusatzfrage {
-    margin-top: 1.5rem;
-    background: var(--flaeche);
-    border: 1px dashed var(--linie);
-    border-radius: 10px;
-    padding: 1.1rem 1.25rem;
-    font-size: 0.95rem;
-  }
-  .zusatzfrage h2 { font-size: 1.05rem; margin: 0 0 0.5rem; color: var(--akzent); }
-  .zusatzfrage p { margin: 0 0 0.5rem; color: var(--gedimmt); }
-  .zusatzfrage p:last-child { margin-bottom: 0; color: var(--text); }
-
-  /* Zurücksetzen (dezent, mit Bestätigungs-Schritt) */
-  details.reset {
-    margin-top: 2.5rem;
-    text-align: center;
-    font-size: 0.85rem;
-  }
-  details.reset summary {
-    color: var(--gedimmt);
-    cursor: pointer;
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  details.reset summary:hover, details.reset summary:focus-visible { color: var(--akzent); }
-  details.reset p { color: var(--gedimmt); margin: 0.5rem 0; }
-  details.reset button {
-    font: inherit;
-    min-height: 44px;
-    padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    border: 1px solid var(--linie);
-    background: var(--flaeche);
-    color: var(--text);
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  details.reset button:hover, details.reset button:focus-visible { border-color: var(--akzent); }
-
-  a.betreten {
-    display: inline-block;
-    margin-top: 0.4rem;
-    padding: 0.55rem 1.1rem;
-    min-height: 48px;
-    border-radius: 8px;
-    border: 1px solid var(--gruen);
-    color: var(--gruen);
-    text-decoration: none;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  a.betreten:hover, a.betreten:focus-visible { background: rgba(127, 176, 105, 0.12); }
-  a.betreten:focus-visible { outline: 2px solid var(--gruen); outline-offset: 2px; }
-
-  footer.fuss {
-    margin-top: 3rem;
-    text-align: center;
-    color: var(--gedimmt);
-    font-size: 0.85rem;
-  }
+@media (max-width: 380px) {
+  .jahr-form { flex-direction: column; align-items: stretch; }
+  .jahr-form input, .jahr-form .primar { width: 100%; }
 }
 </style>
 </head>
 <body>
-<main>
-  <header class="kopf">
-    <span class="siegel" aria-hidden="true">🗝️</span>
-    <h1>Escape Room</h1>
-    <p class="untertitel">Eine Station des Schulfests</p>
-  </header>
+<header>
+  <div class="kopf-innen">
+    <div class="logo-pille" id="logoPille"><img src="Gesamtschule_Hagen-Haspe.jpg" alt="Gesamtschule Haspe"></div>
+    <button type="button" id="themaBtn" class="thema-btn" aria-label="Hell/Dunkel umschalten">🌙 Dunkel</button>
+  </div>
+</header>
 
-  <p>
-    Vier Türen versperren euch den Weg zu den Rätseln.
-    Jede öffnet sich nur mit der richtigen Zahl —
-    die Hinweise dazu findet ihr rund um das Schulfest.
-  </p>
+<main>
+  <div class="hero">
+    <span class="hero-icon" aria-hidden="true">🗝️</span>
+    <h1>Escape Room</h1>
+    <p class="unterzeile">Eine Station des Schulfests · Gesamtschule Haspe</p>
+    <p class="fortschritt" id="fortschritt" aria-live="polite">0 von 4 Türen offen</p>
+  </div>
+  <p class="intro-titel">Vier Türen. Vier Bereiche. Ein Ziel.</p>
+  <p class="intro">Findet die Hinweise auf dem Schulgelände, öffnet alle Türen und setzt am Ende den Zielort zusammen.</p>
+  <p class="intro leise">Ihr braucht kein Vorwissen. Schaut genau hin, zählt sorgfältig und nutzt bei Bedarf die Tipps.</p>
+  <p class="intro leise">Hinter jedem Raum wartet ein Teil des Zielorts und ein Teil des geheimen Codeworts.</p>
 
   <div class="tueren">
-    <!-- ═══ TÜR-KONFIGURATION ═══════════════════════════════════════════
-         Frage ändern: Text in .frage anpassen.
-         Jahr ändern:  neuen data-hash erzeugen (Anleitung im README,
-         Abschnitt „Tür-Jahr ändern") — die Jahreszahl selbst steht
-         absichtlich NICHT im Quelltext.                                -->
-    <section class="tuer" data-n="1" data-ziel="raum1.html"
-             data-hash="95d418c442a3100b7401427a39d6d9d44f9c22cdb47cc42df3287939f98fba0d">
-      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 1</h2>
-      <p class="frage">In welchem Jahr wurde die Gesamtschule Haspe gegründet?</p>
-      <form class="jahr-form" autocomplete="off">
-        <label class="visually-hidden" for="jahr1" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 1</label>
-        <input id="jahr1" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
-        <button type="submit">Öffnen</button>
-      </form>
-      <p class="meldung" aria-live="polite"></p>
-      <details class="tipp">
-        <summary>💡 Tipp ansehen</summary>
-        <p>Die Gesamtschule feiert heute ein rundes Jubiläum — die Zahl seht ihr überall auf dem Fest. Rechnet: heutiges Jahr minus Jubiläums-Zahl = Gründungsjahr.</p>
-      </details>
-      <a class="betreten" href="raum1.html" hidden>Raum 1 betreten →</a>
+
+    <section class="karte tuer" data-tuer="1" data-ziel="raum1.html"
+      data-hash="95d418c442a3100b7401427a39d6d9d44f9c22cdb47cc42df3287939f98fba0d">
+      <div class="karte-kopf">
+        <span class="badge">Tür 1</span>
+        <span class="karte-titel">Der Anfang</span>
+        <span class="schloss" aria-label="verschlossen">🔒</span>
+        <span class="offen-chip">✓ offen</span>
+      </div>
+      <div class="zu-bereich">
+        <p class="frage">In welchem Jahr wurde die Gesamtschule Haspe gegründet?</p>
+        <form class="jahr-form" autocomplete="off">
+          <input aria-label="Jahreszahl für Tür 1" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="····" required>
+          <button type="submit" class="primar">Öffnen</button>
+        </form>
+        <p class="meldung" aria-live="polite"></p>
+        <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Heute feiern wir 40 Jahre. Rechnet vom aktuellen Jahr zurück.</p>
+        </details>
+      </div>
+      <a class="betreten" href="raum1.html">Raum 1 betreten →</a>
     </section>
 
-    <section class="tuer" data-n="2" data-ziel="raum2.html"
-             data-hash="56c0877c097bbd8f1edcf8575748388273667fc92b4a8834bce43a58d391b0b7">
-      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 2</h2>
-      <p class="frage">In welchem Jahr wurde das Gebäude des Ernst-Meister-Gymnasiums erbaut?</p>
-      <form class="jahr-form" autocomplete="off">
-        <label for="jahr2" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 2</label>
-        <input id="jahr2" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
-        <button type="submit">Öffnen</button>
-      </form>
-      <p class="meldung" aria-live="polite"></p>
-      <details class="tipp">
-        <summary>💡 Tipp ansehen</summary>
-        <p>Geht zum Altbau und schaut genau hin: Er trägt sein Baujahr gut sichtbar. Diese vier Ziffern öffnen die Tür.</p>
-      </details>
-      <a class="betreten" href="raum2.html" hidden>Raum 2 betreten →</a>
+    <section class="karte tuer" data-tuer="2" data-ziel="raum2.html"
+      data-hash="56c0877c097bbd8f1edcf8575748388273667fc92b4a8834bce43a58d391b0b7">
+      <div class="karte-kopf">
+        <span class="badge">Tür 2</span>
+        <span class="karte-titel">Das steinerne Datum</span>
+        <span class="schloss" aria-label="verschlossen">🔒</span>
+        <span class="offen-chip">✓ offen</span>
+      </div>
+      <div class="zu-bereich">
+        <p class="frage">In welchem Jahr wurde das Gebäude des Ernst-Meister-Gymnasiums erbaut?</p>
+        <form class="jahr-form" autocomplete="off">
+          <input aria-label="Jahreszahl für Tür 2" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="····" required>
+          <button type="submit" class="primar">Öffnen</button>
+        </form>
+        <p class="meldung" aria-live="polite"></p>
+        <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Sucht den Haupteingang des Altbaus.</p>
+        </details>
+        <div class="hilfe2" hidden>
+          <button type="button" class="hilfe2-knopf">Deutlichere Hilfe anzeigen</button>
+          <p class="tipp-text" hidden>Schaut über dem Eingang in das Mauerwerk.</p>
+        </div>
+      </div>
+      <a class="betreten" href="raum2.html">Raum 2 betreten →</a>
     </section>
 
-    <section class="tuer" data-n="3" data-ziel="raum3.html"
-             data-hash="0423ff21106c51b6b97471d3f1561aa389c809e36fec0da738793657ac6e8fe2">
-      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 3</h2>
-      <p class="frage">In welchem Jahr wurde der Pizzaofen auf dem Schulhof gebaut?</p>
-      <form class="jahr-form" autocomplete="off">
-        <label for="jahr3" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahreszahl für Tür 3</label>
-        <input id="jahr3" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
-        <button type="submit">Öffnen</button>
-      </form>
-      <p class="meldung" aria-live="polite"></p>
-      <details class="tipp">
-        <summary>💡 Tipp ansehen</summary>
-        <p>Diese Antwort steht nirgends geschrieben: Fragt die Betreuer an der Escape-Room-Station — jemand dort kennt das Baujahr des Pizzaofens.</p>
-      </details>
-      <a class="betreten" href="raum3.html" hidden>Raum 3 betreten →</a>
+    <section class="karte tuer" data-tuer="3" data-ziel="raum3.html"
+      data-hash="0423ff21106c51b6b97471d3f1561aa389c809e36fec0da738793657ac6e8fe2">
+      <div class="karte-kopf">
+        <span class="badge">Tür 3</span>
+        <span class="karte-titel">Der Hüter des Ofens</span>
+        <span class="schloss" aria-label="verschlossen">🔒</span>
+        <span class="offen-chip">✓ offen</span>
+      </div>
+      <div class="zu-bereich">
+        <p class="frage">In welchem Jahr wurde der Pizzaofen gebaut?</p>
+        <form class="jahr-form" autocomplete="off">
+          <input aria-label="Jahreszahl für Tür 3" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="····" required>
+          <button type="submit" class="primar">Öffnen</button>
+        </form>
+        <p class="meldung" aria-live="polite"></p>
+        <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Sucht den Pizzaofen mitten auf dem Schulhof. Dort wartet ein Helfer.</p>
+        </details>
+      </div>
+      <a class="betreten" href="raum3.html">Raum 3 betreten →</a>
     </section>
 
-    <section class="tuer" data-n="4" data-ziel="raum4.html"
-             data-hash="afb563f469e8a35267e612b09af51480f47d20aaa3fb264e33578d31d9bea7d7">
-      <h2><span class="schloss schloss-zu" aria-hidden="true">🔒</span><span class="schloss schloss-auf" aria-hidden="true">🔓</span> Tür 4</h2>
-      <p class="frage">Vor wie vielen Jahren wurde der Neubau ungefähr gebaut?</p>
-      <form class="jahr-form" autocomplete="off">
-        <label for="jahr4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Zahl für Tür 4</label>
-        <input id="jahr4" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="··" required>
-        <button type="submit">Öffnen</button>
-      </form>
-      <p class="meldung" aria-live="polite"></p>
-      <details class="tipp">
-        <summary>💡 Tipp ansehen</summary>
-        <p>Zählt die Basketballkörbe auf dem Schulhof und rechnet: Anzahl mal 15. Das Ergebnis öffnet diese Tür.</p>
-      </details>
-      <a class="betreten" href="raum4.html" hidden>Raum 4 betreten →</a>
+    <section class="karte tuer" data-tuer="4" data-ziel="raum4.html"
+      data-hash="afb563f469e8a35267e612b09af51480f47d20aaa3fb264e33578d31d9bea7d7">
+      <div class="karte-kopf">
+        <span class="badge">Tür 4</span>
+        <span class="karte-titel">Die Rechnung des Schulhofs</span>
+        <span class="schloss" aria-label="verschlossen">🔒</span>
+        <span class="offen-chip">✓ offen</span>
+      </div>
+      <div class="zu-bereich">
+        <p class="frage">Vor wie vielen Jahren wurde der Neubau ungefähr gebaut?</p>
+        <form class="jahr-form" autocomplete="off">
+          <input aria-label="Zahl für Tür 4" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="··" required>
+          <button type="submit" class="primar">Öffnen</button>
+        </form>
+        <p class="meldung" aria-live="polite"></p>
+        <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
+        <details class="tipp">
+          <summary>💡 Tipp ansehen</summary>
+          <p class="tipp-text">Zählt die Basketballkörbe auf dem Schulhof und multipliziert ihre Anzahl mit 15.</p>
+        </details>
+      </div>
+      <a class="betreten" href="raum4.html">Raum 4 betreten →</a>
     </section>
   </div>
 
-  <section class="zusatzfrage">
-    <h2><span aria-hidden="true">🧮</span> Die unlösbare Frage</h2>
-    <p><em>Freiwillig — und ohne richtige Antwort, denn nicht einmal wir kennen sie:</em></p>
-    <p>Wie viele Räume hat die gesamte Schulanlage insgesamt?
-       Schätzt mutig — und bringt eure Zahl mit in die Zentrale.
-       Die kühnsten Schätzungen werden dort gesammelt.</p>
+  <section class="karte abschluss" id="abschluss" hidden>
+    <p class="abschluss-titel">Alle vier Fundstücke sind gefunden.</p>
+    <p>Setzt die Teile zusammen, findet die Zentrale und nennt dort das vollständige Codewort.</p>
+    <p class="klein">Prüfhilfe: Habt ihr einen Gebäudeteil, eine Raumnummer und ein zusammengesetztes Wort erhalten?</p>
   </section>
 
-  <details class="reset">
-    <summary>↺ Von vorn beginnen</summary>
-    <p>Alle vier Türen verschließen sich wieder — die Zahlen müsst ihr erneut herausfinden.</p>
-    <button type="button" id="resetBtn">Ja, alle Türen verschließen</button>
-  </details>
+  <section class="karte unloesbar">
+    <h2>🧮 Die unlösbare Frage</h2>
+    <p class="kursiv">Freiwillig — und ohne richtige Antwort, denn nicht einmal wir kennen sie:</p>
+    <p class="frage-text">Wie viele Räume hat die gesamte Schulanlage? Schätzt mutig — und bringt eure Zahl mit in die Zentrale.</p>
+  </section>
 
-  <footer class="fuss">Viel Erfolg — die Zeit läuft nur in eurem Kopf.</footer>
+  <details class="reset" id="resetBereich" hidden>
+    <summary>↺ Von vorn beginnen</summary>
+    <p>Alle Türen verschließen sich wieder — die Zahlen müsst ihr erneut herausfinden.</p>
+    <button type="button" id="resetBtn">Ja, alles zurücksetzen</button>
+  </details>
 </main>
 
+<div class="leiste">
+  <div class="leiste-innen">
+    <div class="leiste-zeile"><span class="leiste-label">🧭 Zielort</span><span class="chip" data-zchip="raum1">?</span><span class="chip" data-zchip="raum2">?</span><span class="chip" data-zchip="raum3">?</span><span class="chip" data-zchip="raum4">?</span></div>
+    <div class="leiste-zeile"><span class="leiste-label">🔑 Codewort</span><span class="chip cw" data-cchip="raum1">?</span><span class="chip cw" data-cchip="raum2">?</span><span class="chip cw" data-cchip="raum3">?</span><span class="chip cw" data-cchip="raum4">?</span></div>
+  </div>
+</div>
+
 <script>
-(() => {
+(function () {
   'use strict';
 
-  // Gesalzener SHA-256 — die Jahreszahl steht nirgends im Klartext.
-  async function jahrHash(jahr, n) {
-    const data = new TextEncoder().encode(`${jahr}·tuer${n}·schulfest`);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  /* ── Sichere Speicher-Helfer: blockierter Speicher darf den Spielfluss nie stoppen ── */
+  function sGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function sSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function sDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  /* ── Theme ── */
+  var themaBtn = document.getElementById('themaBtn');
+  var dunkel = (function () {
+    var s = sGet('sf_theme');
+    if (s) return s === 'dunkel';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  })();
+  function themaAnwenden() {
+    document.documentElement.style.colorScheme = dunkel ? 'dark' : 'light';
+    themaBtn.textContent = dunkel ? '☀️ Hell' : '🌙 Dunkel';
+  }
+  themaAnwenden();
+  themaBtn.addEventListener('click', function () {
+    dunkel = !dunkel;
+    sSet('sf_theme', dunkel ? 'dunkel' : 'hell');
+    themaAnwenden();
+  });
+
+  /* ── Hash-Prüfung (Salz-Vertrag wie Original — nicht ändern!) ── */
+  async function jahrHash(jahr, tuer) {
+    var data = new TextEncoder().encode(jahr + '·tuer' + tuer + '·schulfest');
+    var buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
   }
 
-  function oeffneUI(tuer, sofort) {
-    tuer.classList.add('offen');
-    tuer.querySelector('.jahr-form').hidden = true;
-    tuer.querySelector('.betreten').hidden = false;
-    tuer.querySelector('.meldung').textContent = sofort ? 'Diese Tür habt ihr bereits geöffnet.' : 'Die Tür öffnet sich …';
+  /* ── Fundstück-Chips: Beute-Texte aller Räume (Base64 wie im Original) ── */
+  var BEUTE = {
+    raum1: 'RnVuZHN0w7xjayAxIHZvbiA0CgpaaWVsb3J0LVRlaWw6IE5FVQpDb2Rld29ydC1UZWlsOiBKVUIKClRyYWd0IGJlaWRlIFRlaWxlIGluIEZlbGQgMSBlaW4u',
+    raum2: 'RnVuZHN0w7xjayAyIHZvbiA0CgpaaWVsb3J0LVRlaWw6IEJBVQpDb2Rld29ydC1UZWlsOiBJTMOEVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAyIGVpbi4=',
+    raum3: 'RnVuZHN0w7xjayAzIHZvbiA0CgpaaWVsb3J0LVRlaWw6IFJBVU0KQ29kZXdvcnQtVGVpbDogTVNLVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAzIGVpbi4=',
+    raum4: 'RnVuZHN0w7xjayA0IHZvbiA0CgpaaWVsb3J0LVRlaWw6IDIzCkNvZGV3b3J0LVRlaWw6IENIRU4KClNldHp0IGpldHp0IGFsbGUgVGVpbGUgaW4gZGVyIHJpY2h0aWdlbiBSZWloZW5mb2xnZSB6dXNhbW1lbi4='
+  };
+  var RAUM_KEYS = { raum1: ['r1a', 'r1b'], raum2: ['r2a', 'r2b'], raum3: ['r3a', 'r3b'], raum4: ['r4a', 'r4b'] };
+
+  function decodiereB64(b64) {
+    try {
+      return new TextDecoder().decode(Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }));
+    } catch (e) { return ''; }
   }
 
-  document.querySelectorAll('.tuer').forEach(tuer => {
-    const n = tuer.dataset.n;
-    const key = 'sf_tuer' + n;
+  function chipsAktualisieren() {
+    Object.keys(RAUM_KEYS).forEach(function (raum) {
+      var fertig = RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
+      var text = fertig ? decodiereB64(BEUTE[raum]) : '';
+      var mz = text.match(/Zielort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+      var mc = text.match(/Codewort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+      var z = document.querySelector('[data-zchip="' + raum + '"]');
+      var c = document.querySelector('[data-cchip="' + raum + '"]');
+      if (z) {
+        if (fertig && mz) { z.textContent = mz[1]; z.classList.add('voll'); }
+        else { z.textContent = '?'; z.classList.remove('voll'); }
+      }
+      if (c) {
+        if (fertig && mc) { c.textContent = mc[1]; c.classList.add('voll'); }
+        else { c.textContent = '?'; c.classList.remove('voll'); }
+      }
+    });
+  }
 
-    if (localStorage.getItem(key) === 'offen') oeffneUI(tuer, true);
+  /* ── Türen (individuelle Rückmeldungen + gestufte Tipps §11) ── */
+  var TUER_TEXTE = {
+    1: { falsch: 'Noch nicht. Rechnet noch einmal genau.', richtig: 'Richtig – die erste Tür öffnet sich.' },
+    2: { falsch: 'Diese Zahl steht dort nicht. Schaut über dem Eingang noch einmal genau hin.', richtig: 'Das Mauerwerk gibt sein Datum preis.' },
+    3: { falsch: 'Der Helfer hat eine andere Jahreszahl genannt.', richtig: 'Die Botschaft des Ofens öffnet die Tür.' },
+    4: { falsch: 'Die Rechnung stimmt noch nicht. Prüft Anzahl und Multiplikation.', richtig: 'Richtig gerechnet – die letzte Tür öffnet sich.' }
+  };
+  var offenZahl = 0;
+  var versuche = {};
+  function fundstueckZahl() {
+    return Object.keys(RAUM_KEYS).filter(function (raum) {
+      return RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
+    }).length;
+  }
+  function fortschrittAktualisieren() {
+    document.getElementById('fortschritt').textContent =
+      offenZahl + ' von 4 Türen offen · ' + fundstueckZahl() + ' von 4 Fundstücken';
+    document.getElementById('abschluss').hidden = fundstueckZahl() !== 4;
+  }
 
-    tuer.querySelector('.jahr-form').addEventListener('submit', async (ev) => {
+  document.querySelectorAll('.tuer').forEach(function (tuer) {
+    var n = tuer.dataset.tuer;
+    var key = 'sf_tuer' + n;
+    if (sGet(key) === 'offen') { tuer.classList.add('ist-offen'); offenZahl++; }
+
+    tuer.querySelector('.jahr-form').addEventListener('submit', async function (ev) {
       ev.preventDefault();
-      const input = tuer.querySelector('input');
-      const meldung = tuer.querySelector('.meldung');
-      const jahr = input.value.trim();
-
-      if (await jahrHash(jahr, n) === tuer.dataset.hash) {
-        try { localStorage.setItem(key, 'offen'); } catch (e) { /* Privat-Modus: Tür öffnet trotzdem */ }
-        oeffneUI(tuer, false);
-        setTimeout(() => { location.href = tuer.dataset.ziel; }, 600);
-      } else {
-        meldung.textContent = 'Die Tür bleibt verschlossen — dieses Jahr ist es nicht.';
-        input.select();
+      var input = tuer.querySelector('input');
+      var knopf = tuer.querySelector('.primar');
+      var meldung = tuer.querySelector('.meldung');
+      var jahr = input.value.trim();
+      knopf.disabled = true;
+      try {
+        var h = await jahrHash(jahr, n);
+        if (h === tuer.dataset.hash) {
+          sSet(key, 'offen');
+          meldung.classList.add('gruen');
+          meldung.textContent = TUER_TEXTE[n].richtig;
+          offenZahl++;
+          fortschrittAktualisieren();
+          /* #offen: Raum weiß, dass er von einer gerade gelösten Tür betreten wird —
+             so blockt der Hinweis-Banner auch bei blockiertem Speicher nicht */
+          setTimeout(function () { location.href = tuer.dataset.ziel + '#offen'; }, 900);
+        } else {
+          versuche[n] = (versuche[n] || 0) + 1;
+          meldung.textContent = TUER_TEXTE[n].falsch;
+          if (versuche[n] >= 2) {
+            var ruf = tuer.querySelector('.hilfe-ruf');
+            if (ruf) ruf.hidden = false;
+            var tippKnopf = tuer.querySelector('.tipp summary');
+            if (tippKnopf) tippKnopf.classList.add('betont');
+          }
+          if (versuche[n] >= 4) {
+            var deutlich = tuer.querySelector('.hilfe2');
+            if (deutlich) deutlich.hidden = false;
+          }
+          input.select();
+        }
+      } catch (e) {
+        meldung.textContent = 'Die Antwort konnte auf diesem Gerät nicht geprüft werden. Bitte zeigt die Meldung einem Helfer.';
+      } finally {
+        knopf.disabled = false;
       }
     });
   });
+  fortschrittAktualisieren();
 
-  // Zurücksetzen: alle Tür-Flags löschen, Seite neu laden (alle Türen wieder zu)
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    try { [1, 2, 3, 4].forEach(n => localStorage.removeItem('sf_tuer' + n)); } catch (e) {}
+  /* Deutlichere Hilfe (§11 Stufe 3) — nur Tür 2 */
+  document.querySelectorAll('.hilfe2-knopf').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.nextElementSibling.hidden = false;
+      b.hidden = true;
+    });
+  });
+
+  /* ── Reset nur für Wissende: 7 schnelle Tipps aufs Logo oder ?reset in der URL ──
+     (verhindert, dass Gäste per Zurücksetzen ein zweites Geschenk abholen) */
+  (function () {
+    var bereich = document.getElementById('resetBereich');
+    if (new URLSearchParams(location.search).has('reset')) bereich.hidden = false;
+    var zaehler = 0, start = 0;
+    document.getElementById('logoPille').addEventListener('click', function () {
+      var jetzt = Date.now();
+      if (zaehler === 0 || jetzt - start > 3000) { zaehler = 0; start = jetzt; }
+      zaehler++;
+      if (zaehler >= 7) {
+        zaehler = 0;
+        bereich.hidden = false;
+        bereich.open = true;
+        bereich.scrollIntoView({ block: 'center' });
+      }
+    });
+  })();
+
+  /* ── Vollständiger Reset: ALLE sf_-Schlüssel außer dem Theme ── */
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    var keys = [];
+    try {
+      keys = Object.keys(localStorage).filter(function (k) { return k.indexOf('sf_') === 0 && k !== 'sf_theme'; });
+    } catch (e) {}
+    if (!keys.length) {
+      keys = ['sf_tuer1', 'sf_tuer2', 'sf_tuer3', 'sf_tuer4',
+        'sf_r1a', 'sf_r1b', 'sf_r2a', 'sf_r2b', 'sf_r3a', 'sf_r3b', 'sf_r4a', 'sf_r4b'];
+    }
+    keys.forEach(sDel);
     location.reload();
+  });
+
+  chipsAktualisieren();
+})();
+
+/* PWA: Offline-Netz — Registrierung network-first-doktrin-konform
+   (updateViaCache none + Update-Check bei Tab-Rückkehr · Drei-Löcher-Lehre) */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      if (reg) reg.update();
+    }).catch(function () {});
   });
 })();
 </script>

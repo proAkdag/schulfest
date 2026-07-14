@@ -1,286 +1,294 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- DSGVO-Härtung: Meta-Variante (GitHub Pages, keine eigenen Header möglich).
-     Werk ist self-contained, kein Netz nach Ladezeit, keine Sensoren, keine Cookies. -->
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-<meta name="theme-color" content="#14161c">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#0e131d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- GATE-ALLOW: PWA-Site auf GitHub Pages — manifest.webmanifest ist same-origin-Pflichtdatei und liegt im SW-Precache; kein CDN, kein Fremd-Origin -->
 <title>Caesar-Scheibe · Escape Room</title>
+<script>
+/* Früh-Theme vor erstem Paint — verhindert Hell/Dunkel-Blitz */
+(function () {
+  try {
+    var s = localStorage.getItem('sf_theme');
+    if (s) document.documentElement.style.colorScheme = s === 'dunkel' ? 'dark' : 'light';
+  } catch (e) {}
+})();
+</script>
 <style>
-@layer reset, base, components;
-
-@layer reset {
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.55;
-    font-size: clamp(15px, 1rem + 0.2vw, 19px);
-  }
-  :where(h1, h2) { text-wrap: balance; }
-  :where(p, li) { text-wrap: pretty; }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-  @media (forced-colors: active) {
-    :where(button) { border: 1px solid CanvasText; }
-  }
+:root { color-scheme: light dark; }
+/* Fallback für Browser ohne light-dark(): helles Theme */
+:root {
+  --bg: #f3f1ea; --karte: #ffffff; --karte2: #edeae1; --text: #1e2733; --dim: #5b6575;
+  --blau: #1d4f9e; --btn: #1d4f9e; --gold: #99700e; --goldbg: rgba(153,112,14,.08);
+  --rot: #bd3a2a; --gruen: #1f7a48; --gruenbg: rgba(31,122,72,.08); --linie: #ddd9cd;
 }
-
-@layer base {
+@supports (color: light-dark(#000, #fff)) {
   :root {
-    color-scheme: dark;
-    --bg: #14161c;
-    --flaeche: #1e2129;
-    --flaeche-hell: #2a2e39;
-    --text: #e8e6df;
-    --gedimmt: #9a978e;
-    --akzent: #d9a441;
-    --linie: #33363f;
-  }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100svh;
-  }
-  main {
-    max-width: 30rem;
-    margin-inline: auto;
-    padding: 1.25rem 1.25rem 3rem;
-  }
-  a.zurueck {
-    color: var(--gedimmt);
-    text-decoration: none;
-    font-size: 0.9rem;
-  }
-  a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
-  h1 {
-    font-size: 1.35rem;
-    letter-spacing: 0.05em;
-    color: var(--akzent);
-    text-transform: uppercase;
-    text-align: center;
-    margin: 1rem 0 0.25rem;
-  }
-  .untertitel {
-    text-align: center;
-    color: var(--gedimmt);
-    font-size: 0.92rem;
-    margin: 0 0 1rem;
+    --bg: light-dark(#f3f1ea, #0e131d);
+    --karte: light-dark(#ffffff, #16202e);
+    --karte2: light-dark(#edeae1, #1e2a3b);
+    --text: light-dark(#1e2733, #e9edf4);
+    --dim: light-dark(#5b6575, #97a3b6);
+    --blau: light-dark(#1d4f9e, #82abec);
+    --btn: light-dark(#1d4f9e, #2f5fae);
+    --gold: light-dark(#99700e, #e6b73c);
+    --goldbg: light-dark(rgba(153,112,14,.08), rgba(230,183,60,.12));
+    --rot: light-dark(#bd3a2a, #e2705f);
+    --gruen: light-dark(#1f7a48, #7cc794);
+    --gruenbg: light-dark(rgba(31,122,72,.08), rgba(124,199,148,.14));
+    --linie: light-dark(#ddd9cd, #263449);
   }
 }
-
-@layer components {
-  /* ── Scheibe ── */
-  .scheiben-buehne {
-    display: grid;
-    place-items: center;
-  }
-  svg.scheibe {
-    width: min(100%, 380px);
-    height: auto;
-    touch-action: none;              /* Drag darf nicht scrollen */
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  #rotor {
-    transform-box: fill-box;
-    transform-origin: center;
-    transition: transform 0.25s ease;
-    cursor: grab;
-  }
-  #rotor.dragging { transition: none; cursor: grabbing; }
-
-  /* ── Ablese-Anzeige ── */
-  output.ablesung {
-    display: block;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    font-size: 1.15rem;
-    margin-top: 0.75rem;
-    color: var(--text);
-  }
-  output.ablesung b { color: var(--akzent); font-size: 1.3em; }
-
-  /* ── Dreh-Tasten ── */
-  .tasten {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  .tasten button {
-    font: inherit;
-    font-size: 1.05rem;
-    min-width: 7.5rem;
-    min-height: 48px;                 /* Touch-Target */
-    padding: 0.6rem 1rem;
-    border-radius: 10px;
-    border: 1px solid var(--linie);
-    background: var(--flaeche);
-    color: var(--text);
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    cursor: pointer;
-  }
-  .tasten button:hover, .tasten button:focus-visible { border-color: var(--akzent); }
-  .tasten button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
-  .tasten button:active { background: var(--flaeche-hell); }
-
-  /* ── Anleitung ── */
-  .anleitung {
-    margin-top: 2rem;
-    background: var(--flaeche);
-    border: 1px solid var(--linie);
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-    font-size: 0.95rem;
-  }
-  .anleitung h2 { font-size: 1rem; margin: 0 0 0.5rem; color: var(--akzent); }
-  .anleitung ol { margin: 0; padding-left: 1.2rem; }
-  .anleitung li { margin-block: 0.35rem; }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
 }
+a { color: var(--blau); } a:hover { color: var(--gold); }
+:where(button) { font: inherit; }
+:where(button, a):focus-visible { outline: 2px solid var(--blau); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  :where(.karte, button, .chip) { border: 1px solid CanvasText; }
+}
+
+/* ── Kopfzeile ── */
+header { position: sticky; top: 0; z-index: 40; background: var(--karte); border-bottom: 1px solid var(--linie); }
+.kopf-innen { max-width: 30rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; }
+.logo-pille { background: #ffffff; border: 1px solid var(--linie); border-radius: 10px; padding: 4px 10px; display: flex; align-items: center; }
+.logo-pille img { height: 30px; width: auto; display: block; }
+.thema-btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linie); background: var(--karte2); color: var(--text); cursor: pointer; font-size: 14px; }
+.thema-btn:hover { border-color: var(--gold); }
+
+main { max-width: 30rem; margin: 0 auto; padding: 16px 16px 156px; }
+.zurueck { background: none; border: none; padding: 8px 0; color: var(--dim); font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.zurueck:hover { color: var(--blau); }
+.seiten-kopf { text-align: center; margin: 8px 0 16px; }
+.seiten-kopf h1 { margin: 0; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; color: var(--blau); }
+.seiten-kopf .unter { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+
+.scheiben-buehne { display: grid; place-items: center; }
+svg.scheibe { width: min(100%, 320px); height: auto; display: block; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.scheiben-zeile { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+.scheiben-zeile button { min-height: 48px; min-width: 100px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--linie); background: var(--karte); color: var(--text); cursor: pointer; }
+.scheiben-zeile button:hover { border-color: var(--gold); }
+.ablesung { font-variant-numeric: tabular-nums; font-size: 17px; min-width: 10rem; text-align: center; color: var(--gold); font-weight: 700; }
+
+.karte { background: var(--karte); border: 1px solid var(--linie); border-radius: 14px; padding: 16px 18px; }
+.karte h2 { font-size: 15px; margin: 0 0 8px; color: var(--gold); }
+.karte ol { margin: 0; padding-left: 20px; font-size: 14.5px; display: grid; gap: 6px; }
+
+/* ── Bottom-Bar ── */
+.leiste { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; border-top: 1px solid var(--linie); background: var(--karte); padding: 10px 14px 12px; }
+.leiste-innen { max-width: 30rem; margin: 0 auto; display: grid; gap: 6px; }
+.leiste-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.leiste-label { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 700; min-width: 6.4rem; }
+.chip { display: inline-flex; align-items: center; min-height: 28px; padding: 2px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .05em; border: 1px dashed var(--linie); color: var(--dim); }
+.chip.voll { border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); }
+.chip.cw.voll { border-color: var(--gruen); background: var(--gruenbg); color: var(--gruen); }
 </style>
 </head>
 <body>
+<header>
+  <div class="kopf-innen">
+    <div class="logo-pille"><img src="Gesamtschule_Hagen-Haspe.jpg" alt="Gesamtschule Haspe"></div>
+    <button type="button" id="themaBtn" class="thema-btn" aria-label="Hell/Dunkel umschalten">🌙 Dunkel</button>
+  </div>
+</header>
+
 <main>
   <a class="zurueck" href="index.html">← Zurück zur Übersicht</a>
-  <h1>Caesar-Scheibe</h1>
-  <p class="untertitel">Außen: Klartext · Innen: Geheimschrift</p>
-
-  <div class="scheiben-buehne">
-    <svg class="scheibe" viewBox="0 0 340 340" role="img"
-         aria-label="Drehbare Caesar-Verschlüsselungsscheibe. Nutze die Tasten unter der Scheibe, um sie zu drehen.">
-      <!-- Ablese-Marke bei 12 Uhr -->
-      <path d="M 170 4 L 163 16 L 177 16 Z" fill="#d9a441"/>
-      <!-- Äußerer Ring (fix, Klartext) -->
-      <circle cx="170" cy="170" r="150" fill="#1e2129" stroke="#33363f" stroke-width="1.5"/>
-      <g id="aussenring"></g>
-      <!-- Innere Scheibe (drehbar, Geheimschrift) -->
-      <g id="rotor">
-        <circle cx="170" cy="170" r="118" fill="#2a2e39" stroke="#d9a441" stroke-width="1.5"/>
-        <g id="innenring"></g>
-        <!-- Griffmulde als Dreh-Hinweis -->
-        <circle cx="170" cy="170" r="26" fill="none" stroke="#33363f" stroke-width="1"/>
-        <text x="170" y="170" text-anchor="middle" dominant-baseline="central"
-              font-size="20" fill="#9a978e" style="pointer-events:none">⟳</text>
-      </g>
-    </svg>
+  <div class="seiten-kopf">
+    <h1>Caesar-Scheibe</h1>
+    <p class="unter">Außen: Klartext · Innen: Geheimschrift</p>
   </div>
 
-  <output class="ablesung" id="ablesung" aria-live="polite"></output>
-
-  <div class="tasten">
-    <button type="button" id="minus" aria-label="Eine Position zurückdrehen">− 1</button>
-    <button type="button" id="plus" aria-label="Eine Position weiterdrehen">+ 1</button>
+  <div class="scheiben-buehne" id="scheibenBuehne"></div>
+  <div class="scheiben-zeile">
+    <button type="button" id="caesarMinus" aria-label="Eine Position zurückdrehen">− 1</button>
+    <output class="ablesung" id="ablesung" aria-live="polite"></output>
+    <button type="button" id="caesarPlus" aria-label="Eine Position weiterdrehen">+ 1</button>
   </div>
 
-  <section class="anleitung">
+  <section class="karte">
     <h2>So knackt ihr den Code</h2>
     <ol>
       <li>Dreht die innere Scheibe — mit dem Finger oder den Tasten.</li>
-      <li>Sucht einen Buchstaben eures <strong>Geheimtexts innen</strong> und lest <strong>außen</strong> ab, was er im Klartext bedeutet.</li>
-      <li>Ergibt der Text keinen Sinn? Weiterdrehen und neu probieren — es gibt nur 25 Möglichkeiten.</li>
+      <li>Sucht einen Buchstaben eures <strong>Geheimtexts innen</strong> und lest <strong>außen</strong> den Klartext ab.</li>
+      <li>Ergibt der Text keinen Sinn? Weiterdrehen — es gibt nur 25 Möglichkeiten.</li>
     </ol>
   </section>
 </main>
 
+<div class="leiste">
+  <div class="leiste-innen">
+    <div class="leiste-zeile"><span class="leiste-label">🧭 Zielort</span><span class="chip" data-zchip="raum1">?</span><span class="chip" data-zchip="raum2">?</span><span class="chip" data-zchip="raum3">?</span><span class="chip" data-zchip="raum4">?</span></div>
+    <div class="leiste-zeile"><span class="leiste-label">🔑 Codewort</span><span class="chip cw" data-cchip="raum1">?</span><span class="chip cw" data-cchip="raum2">?</span><span class="chip cw" data-cchip="raum3">?</span><span class="chip cw" data-cchip="raum4">?</span></div>
+  </div>
+</div>
+
 <script>
-(() => {
+(function () {
   'use strict';
-  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const N = 26;
-  const STEP = 360 / N;
-  const CX = 170, CY = 170;
 
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const rotor = document.getElementById('rotor');
-  const ablesung = document.getElementById('ablesung');
+  var BEUTE = {
+    raum1: 'RnVuZHN0w7xjayAxIHZvbiA0CgpaaWVsb3J0LVRlaWw6IE5FVQpDb2Rld29ydC1UZWlsOiBKVUIKClRyYWd0IGJlaWRlIFRlaWxlIGluIEZlbGQgMSBlaW4u',
+    raum2: 'RnVuZHN0w7xjayAyIHZvbiA0CgpaaWVsb3J0LVRlaWw6IEJBVQpDb2Rld29ydC1UZWlsOiBJTMOEVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAyIGVpbi4=',
+    raum3: 'RnVuZHN0w7xjayAzIHZvbiA0CgpaaWVsb3J0LVRlaWw6IFJBVU0KQ29kZXdvcnQtVGVpbDogTVNLVQoKVHJhZ3QgYmVpZGUgVGVpbGUgaW4gRmVsZCAzIGVpbi4=',
+    raum4: 'RnVuZHN0w7xjayA0IHZvbiA0CgpaaWVsb3J0LVRlaWw6IDIzCkNvZGV3b3J0LVRlaWw6IENIRU4KClNldHp0IGpldHp0IGFsbGUgVGVpbGUgaW4gZGVyIHJpY2h0aWdlbiBSZWloZW5mb2xnZSB6dXNhbW1lbi4='
+  };
+  var RAUM_KEYS = { raum1: ['r1a', 'r1b'], raum2: ['r2a', 'r2b'], raum3: ['r3a', 'r3b'], raum4: ['r4a', 'r4b'] };
 
-  // Buchstaben-Ringe generieren (außen fix, innen drehbar)
-  function baueRing(gruppe, radius, farbe, groesse) {
-    for (let i = 0; i < N; i++) {
-      const winkel = i * STEP;
-      const t = document.createElementNS(svgNS, 'text');
-      t.setAttribute('x', CX);
-      t.setAttribute('y', CY - radius);
-      t.setAttribute('transform', `rotate(${winkel} ${CX} ${CY})`);
-      t.setAttribute('text-anchor', 'middle');
-      t.setAttribute('dominant-baseline', 'central');
-      t.setAttribute('font-size', groesse);
-      t.setAttribute('font-weight', '600');
-      t.setAttribute('fill', farbe);
-      t.style.pointerEvents = 'none';
-      t.textContent = ALPHABET[i];
+  /* ── Sichere Speicher-Helfer ── */
+  function sGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function sSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+
+  /* ── Theme ── */
+  var themaBtn = document.getElementById('themaBtn');
+  var dunkel = (function () {
+    var s = sGet('sf_theme');
+    if (s) return s === 'dunkel';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  })();
+  function themaAnwenden() {
+    document.documentElement.style.colorScheme = dunkel ? 'dark' : 'light';
+    themaBtn.textContent = dunkel ? '☀️ Hell' : '🌙 Dunkel';
+  }
+  themaAnwenden();
+  themaBtn.addEventListener('click', function () {
+    dunkel = !dunkel;
+    sSet('sf_theme', dunkel ? 'dunkel' : 'hell');
+    themaAnwenden();
+  });
+
+  function decodiereB64(b64) {
+    try {
+      return new TextDecoder().decode(Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }));
+    } catch (e) { return ''; }
+  }
+
+  /* ── Fundstück-Chips ── */
+  Object.keys(RAUM_KEYS).forEach(function (raum) {
+    var fertig = RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
+    if (!fertig) return;
+    var text = decodiereB64(BEUTE[raum]);
+    var mz = text.match(/Zielort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+    var mc = text.match(/Codewort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
+    var z = document.querySelector('[data-zchip="' + raum + '"]');
+    var c = document.querySelector('[data-cchip="' + raum + '"]');
+    if (z && mz) { z.textContent = mz[1]; z.classList.add('voll'); }
+    if (c && mc) { c.textContent = mc[1]; c.classList.add('voll'); }
+  });
+
+  /* ── Caesar-Scheibe (SVG · Drag mit Raster-Snap · identische Mechanik wie raum2.html) ── */
+  var NS = 'http://www.w3.org/2000/svg';
+  var ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var STEP = 360 / 26;
+  var deg = 0, dragging = false, drag = null;
+
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 340 340');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Drehbare Caesar-Scheibe. Nutze die Tasten unter der Scheibe.');
+  svg.setAttribute('class', 'scheibe');
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    return e;
+  }
+  function buchstaben(gruppe, r, fill, fs) {
+    for (var i = 0; i < 26; i++) {
+      var t = el('text', {
+        x: 170, y: 170 - r,
+        transform: 'rotate(' + (i * STEP) + ' 170 170)',
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': fs, 'font-weight': 600, fill: fill,
+        'pointer-events': 'none'
+      });
+      t.textContent = ALPHA[i];
       gruppe.appendChild(t);
     }
   }
-  baueRing(document.getElementById('aussenring'), 135, '#e8e6df', 17);
-  baueRing(document.getElementById('innenring'), 102, '#d9a441', 15);
 
-  // ── Rotations-Zustand ──
-  let deg = 0;              // aktuelle Rotation der Innen-Scheibe in Grad
-  const mod = (a, n) => ((a % n) + n) % n;
+  svg.appendChild(el('path', { d: 'M 170 4 L 163 16 L 177 16 Z', fill: 'var(--gold)' }));
+  svg.appendChild(el('circle', { cx: 170, cy: 170, r: 150, fill: 'var(--karte)', stroke: 'var(--linie)', 'stroke-width': 1.5 }));
+  buchstaben(svg, 135, 'var(--text)', 17);
 
+  var rotor = el('g', {});
+  rotor.appendChild(el('circle', { cx: 170, cy: 170, r: 118, fill: 'var(--karte2)', stroke: 'var(--gold)', 'stroke-width': 1.5 }));
+  buchstaben(rotor, 102, 'var(--gold)', 15);
+  rotor.appendChild(el('circle', { cx: 170, cy: 170, r: 26, fill: 'none', stroke: 'var(--linie)', 'stroke-width': 1 }));
+  var mitte = el('text', { x: 170, y: 170, 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': 20, fill: 'var(--dim)', 'pointer-events': 'none' });
+  mitte.textContent = '⟳';
+  rotor.appendChild(mitte);
+  rotor.style.transformBox = 'fill-box';
+  rotor.style.transformOrigin = 'center';
+  rotor.style.cursor = 'grab';
+  svg.appendChild(rotor);
+  document.getElementById('scheibenBuehne').appendChild(svg);
+
+  var ablesung = document.getElementById('ablesung');
+  function mod(a, n) { return ((a % n) + n) % n; }
   function render() {
-    rotor.style.transform = `rotate(${deg}deg)`;
-    // Unter Klartext-A (12 Uhr) liegt der Innen-Buchstabe mit Index -deg/STEP
-    const shift = mod(Math.round(-deg / STEP), N);
-    ablesung.innerHTML =
-      `<b>A</b> → <b>${ALPHABET[shift]}</b> &nbsp;·&nbsp; Verschiebung ${shift}`;
+    rotor.style.transition = dragging ? 'none' : 'transform .25s ease';
+    rotor.style.transform = 'rotate(' + deg + 'deg)';
+    var shift = mod(Math.round(-deg / STEP), 26);
+    ablesung.textContent = 'A → ' + ALPHA[shift] + ' · Verschiebung ' + shift;
   }
-
-  function snap() {
-    deg = Math.round(deg / STEP) * STEP;
-    render();
+  function winkel(ev) {
+    var r = svg.getBoundingClientRect();
+    return Math.atan2(ev.clientY - (r.top + r.height / 2), ev.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
   }
-
-  // ── Tasten: +1 erhöht die Verschiebung (dreht gegen den Uhrzeigersinn) ──
-  document.getElementById('plus').addEventListener('click', () => { deg -= STEP; render(); });
-  document.getElementById('minus').addEventListener('click', () => { deg += STEP; render(); });
-
-  // ── Finger-Drehung (Pointer Events + Capture) ──
-  const svg = document.querySelector('svg.scheibe');
-  let dragId = null, startWinkel = 0, startDeg = 0;
-
-  function pointerWinkel(ev) {
-    const r = svg.getBoundingClientRect();
-    return Math.atan2(
-      ev.clientY - (r.top + r.height / 2),
-      ev.clientX - (r.left + r.width / 2)
-    ) * 180 / Math.PI;
-  }
-
-  rotor.addEventListener('pointerdown', (ev) => {
-    dragId = ev.pointerId;
-    startWinkel = pointerWinkel(ev);
-    startDeg = deg;
-    rotor.classList.add('dragging');
-    rotor.setPointerCapture(ev.pointerId);
+  rotor.addEventListener('pointerdown', function (ev) {
     ev.preventDefault();
+    rotor.setPointerCapture(ev.pointerId);
+    drag = { id: ev.pointerId, w0: winkel(ev), d0: deg };
+    dragging = true;
+    rotor.style.cursor = 'grabbing';
+    render();
   });
-  rotor.addEventListener('pointermove', (ev) => {
-    if (ev.pointerId !== dragId) return;
-    deg = startDeg + (pointerWinkel(ev) - startWinkel);
+  rotor.addEventListener('pointermove', function (ev) {
+    if (!drag || ev.pointerId !== drag.id) return;
+    deg = drag.d0 + (winkel(ev) - drag.w0);
     render();
   });
   function dragEnde(ev) {
-    if (ev.pointerId !== dragId) return;
-    dragId = null;
-    rotor.classList.remove('dragging');
-    snap();
+    if (!drag || ev.pointerId !== drag.id) return;
+    drag = null; dragging = false;
+    deg = Math.round(deg / STEP) * STEP;
+    rotor.style.cursor = 'grab';
+    render();
   }
   rotor.addEventListener('pointerup', dragEnde);
   rotor.addEventListener('pointercancel', dragEnde);
-
+  document.getElementById('caesarPlus').addEventListener('click', function () { deg -= STEP; render(); });
+  document.getElementById('caesarMinus').addEventListener('click', function () { deg += STEP; render(); });
   render();
+})();
+
+/* PWA: Offline-Netz — Registrierung network-first-doktrin-konform
+   (updateViaCache none + Update-Check bei Tab-Rückkehr · Drei-Löcher-Lehre) */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      if (reg) reg.update();
+    }).catch(function () {});
+  });
 })();
 </script>
 </body>
