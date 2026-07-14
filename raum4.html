@@ -102,6 +102,7 @@ main { max-width: 30rem; margin: 0 auto; padding: 16px 16px 156px; }
 .primar[disabled] { opacity: .6; cursor: wait; }
 .meldung { min-height: 1.4em; margin: 8px 0 0; font-size: 14px; color: var(--rot); }
 .fertig-text { color: var(--gruen); font-weight: 700; margin: 4px 0 0; display: none; }
+.aufloesung { margin: 3px 0 0; color: var(--dim); font-size: 14px; }
 .raetsel.ist-geloest .fertig-text { display: block; }
 .raetsel.ist-geloest .stufe1 { display: none; }
 
@@ -175,6 +176,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <p class="meldung" aria-live="polite"></p>
       <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
       <p class="fertig-text">✓ Gut geschätzt – nah genug an der Wahrheit.</p>
+      <p class="aufloesung" hidden></p>
     </section>
 
     <section class="karte raetsel" data-basis="r4b">
@@ -194,6 +196,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <p class="meldung" aria-live="polite"></p>
       <p class="hilfe-ruf" hidden>💡 Braucht ihr Hilfe? Öffnet den Tipp.</p>
       <p class="fertig-text">✓ Gut geschätzt – das Kollegium ist beeindruckt.</p>
+      <p class="aufloesung" hidden></p>
     </section>
 
     <div class="beute" id="beute"><p></p><a class="weiter" href="index.html">↩ Zurück zu den Türen</a></div>
@@ -399,8 +402,8 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
   };
 
   var FEHLERTEXTE = {
-    r4a: 'Diese Schätzung liegt noch zu weit entfernt.',
-    r4b: 'Diese Schätzung liegt noch zu weit entfernt.'
+    r4a: 'Zu weit daneben — beratschlagt euch und schätzt neu.',
+    r4b: 'Das Kollegium schmunzelt — versucht es noch einmal.'
   };
 
   var BEUTE = {
@@ -410,6 +413,8 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
     raum4: 'RnVuZHN0w7xjayA0IHZvbiA0CgpaaWVsb3J0LVRlaWw6IDIzCkNvZGV3b3J0LVRlaWw6IENIRU4KClNldHp0IGpldHp0IGFsbGUgVGVpbGUgaW4gZGVyIHJpY2h0aWdlbiBSZWloZW5mb2xnZSB6dXNhbW1lbi4='
   };
   var RAUM_KEYS = { raum1: ['r1a', 'r1b'], raum2: ['r2a', 'r2b'], raum3: ['r3a', 'r3b'], raum4: ['r4a', 'r4b'] };
+  /* Auflösung der Schätzfragen — erscheint erst nach richtiger Antwort (F7) */
+  var AUFLOESUNG = { r4a: 'VGF0c8OkY2hsaWNoIHNpbmQgZXMgZXR3YSAxMTUwIFNjaMO8bGVyaW5uZW4gdW5kIFNjaMO8bGVyLg==', r4b: 'VGF0c8OkY2hsaWNoIHNpbmQgZXMgZXR3YSAxMjAgTGVocmtyw6RmdGUu' };
 
   /* ── Sichere Speicher-Helfer: blockierter Speicher darf den Spielfluss nie stoppen ── */
   function sGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -482,6 +487,14 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
     BASEN.forEach(function (b) {
       var karte = document.querySelector('.raetsel[data-basis="' + b + '"]');
       karte.classList.toggle('ist-geloest', stand[b] === 'geloest');
+      if (stand[b] === 'geloest') {
+        var auf = karte.querySelector('.aufloesung');
+        if (auf) {
+          var eigene = sGet('sf_' + b + '_antwort');
+          auf.textContent = (eigene ? 'Eure Schätzung: ' + eigene + ' · ' : '') + decodiereB64(AUFLOESUNG[b]);
+          auf.hidden = false;
+        }
+      }
     });
   }
 
@@ -517,6 +530,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
           var neu = STUFE2[salz] ? 'stufe2' : 'geloest';
           stand[basis] = neu;
           sSet('sf_' + basis, neu);
+          sSet('sf_' + salz + '_antwort', normalisiere(input.value));
           meldung.textContent = '';
           var ruf = karte.querySelector('.hilfe-ruf');
           if (ruf) ruf.hidden = true;

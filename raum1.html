@@ -114,6 +114,8 @@ main { max-width: 30rem; margin: 0 auto; padding: 16px 16px 156px; }
 .raetsel.ist-stufe2 .stufe2 { display: block; }
 .raetsel.ist-stufe3 .stufe1, .raetsel.ist-stufe3 .stufe2 { display: none; }
 .raetsel.ist-stufe3 .stufe3 { display: block; }
+@keyframes stufe-auf { from { opacity: 0; transform: translateY(-8px); box-shadow: 0 0 0 8px var(--goldbg); } }
+.raetsel.ist-stufe2 .stufe2, .raetsel.ist-stufe3 .stufe3 { animation: stufe-auf .6s ease; }
 .raetsel.ist-geloest .stufe1, .raetsel.ist-geloest .stufe2, .raetsel.ist-geloest .stufe3 { display: none; }
 
 .tipp { margin-top: 10px; }
@@ -159,7 +161,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
     <span class="icon" aria-hidden="true">🪶</span>
     <h1>Raum 1</h1>
     <p class="ort">Die zwei Wandbilder</p>
-    <p class="raum-intro">Ein Gebäude – zwei Seiten – zwei Botschaften. Ein Wandbild liegt am Haupteingang, das andere auf der gegenüberliegenden Schulhofseite.</p>
+    <p class="raum-intro">Zwei Wandbilder: Das erste begrüßt euch am Eingang des Schulgeländes, das zweite wartet auf der Rückseite des Gebäudes zum Schulhof.</p>
   </div>
 
   <div class="banner" id="banner">
@@ -173,7 +175,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <h2>🪽 Die Flügel <span class="geloest-chip">✓ gelöst</span></h2>
       <img class="werk-bild" src="werk_fluegel.jpg" alt="Bunte Flügel an einer Wand im Hauptgebäude">
       <div class="stufe1">
-        <p class="frage">Am Haupteingang warten große Flügel. Findet das Bild und lest die Signatur. Welches Wort steht zwischen # und .AG?</p>
+        <p class="frage">Große Flügel warten auf euch. Findet das Bild und lest die Signatur: Welches Wort steht zwischen # und .AG?</p>
         <form class="antwort-form" data-salz="r1a" autocomplete="off">
           <span class="salz-deko" aria-hidden="true">#</span>
           <input aria-label="Fehlendes Wort der Signatur" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="10" placeholder="_______" required>
@@ -182,11 +184,11 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
         </form>
         <details class="tipp">
           <summary>💡 Tipp ansehen</summary>
-          <p class="tipp-text">Das Wort ist direkt am Bild gut lesbar.</p>
+          <p class="tipp-text">Die Flügel warten direkt am Eingang des Schulgeländes, gleich hinter der Brücke. Das Wort ist am Bild gut lesbar.</p>
         </details>
       </div>
       <div class="stufe2">
-        <p class="gruen-bestaetigung">✓ Die Vorderseite gibt ihr Geheimnis frei.</p>
+        <p class="gruen-bestaetigung" id="best-r1a">✓ Die Vorderseite gibt ihr Geheimnis frei.</p>
         <p class="frage-kursiv">Die Flügel führen euch in die Geschichte der Schule. In welchem Jahr feierte die Schule ihren ersten eigenen Abiturjahrgang?</p>
         <form class="antwort-form" data-salz="r1a2" autocomplete="off">
           <input class="nummer" aria-label="Jahr des ersten Abiturjahrgangs" inputmode="numeric" enterkeyhint="done" maxlength="4" placeholder="····" required>
@@ -206,18 +208,18 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <h2>🎨 Die Wand der Worte <span class="geloest-chip">✓ gelöst</span></h2>
       <img class="werk-bild" src="werk_respekt.jpg" alt="Graffiti-Wand mit dem Wort Respect, ein Wort ist übermalt">
       <div class="stufe1">
-        <p class="frage">Auf der gegenüberliegenden Schulhofseite befindet sich das zweite Wandbild. Welches Wort wurde übermalt?</p>
+        <p class="frage">Auf der Rückseite des Gebäudes — zum Schulhof hin — wartet das zweite Wandbild. Welches Wort wurde übermalt?</p>
         <form class="antwort-form" data-salz="r1b" autocomplete="off">
           <input aria-label="Das übermalte Wort" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="12" placeholder="DAS WORT" required>
           <button type="submit" class="primar">Prüfen</button>
         </form>
         <details class="tipp">
           <summary>💡 Tipp ansehen</summary>
-          <p class="tipp-text">Geht auf die andere Seite derselben Gebäudewand.</p>
+          <p class="tipp-text">Sucht die Wand, die zum Schulhof zeigt — auf der Rückseite des Gebäudes.</p>
         </details>
       </div>
       <div class="stufe2">
-        <p class="gruen-bestaetigung">✓ Die Wand gibt das übermalte Wort frei.</p>
+        <p class="gruen-bestaetigung" id="best-r1b">✓ Die Wand gibt das übermalte Wort frei.</p>
         <p class="frage-kursiv">Unsere Schule trägt den Titel „Schule ohne Rassismus – Schule mit Courage". Ein Wort an der Wand — direkt neben RESPEKT — steht genau dafür. Welches?</p>
         <form class="antwort-form" data-salz="r1b2" autocomplete="off">
           <input aria-label="Das Wort neben Respekt" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="12" placeholder="DAS WORT" required>
@@ -282,10 +284,10 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
   };
 
   var FEHLERTEXTE = {
-    r1a: 'Die Signatur enthält ein anderes Wort. Lest sie noch einmal genau.',
-    r1a2: 'Im Zeitungsausschnitt steht ein anderes Jahr.',
-    r1b: 'Auf der Wand ist ein anderes Wort übermalt.',
-    r1b2: 'Nicht dieses — das gesuchte Wort steht neben RESPEKT.',
+    r1a: 'Die Flügel flüstern ein anderes Wort — lest die Signatur noch einmal.',
+    r1a2: 'Das Archiv schweigt — dieses Jahr ist es nicht.',
+    r1b: 'Das übermalte Wort lautet anders — geht näher heran.',
+    r1b2: 'Die Wand meint ein anderes Wort — schaut direkt neben RESPEKT.',
     r1b3: 'So heißt sie nicht — hört auf den Reim.'
   };
 
@@ -371,6 +373,11 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       karte.classList.toggle('ist-stufe3', stand[b] === 'stufe3');
       karte.classList.toggle('ist-geloest', stand[b] === 'geloest');
     });
+    /* gelöstes Wort bleibt in der Bestätigungszeile sichtbar (F6) */
+    var w1 = sGet('sf_r1a_antwort');
+    if (w1) document.getElementById('best-r1a').textContent = '✓ #' + w1 + '.AG — die Vorderseite gibt ihr Geheimnis frei.';
+    var w2 = sGet('sf_r1b_antwort');
+    if (w2) document.getElementById('best-r1b').textContent = '✓ „' + w2 + '“ — die Wand gibt das übermalte Wort frei.';
   }
 
   /* ── Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind ── */
@@ -405,10 +412,18 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
           var neu = FOLGE[salz] || 'geloest';
           stand[basis] = neu;
           sSet('sf_' + basis, neu);
+          sSet('sf_' + salz + '_antwort', normalisiere(input.value));
           meldung.textContent = '';
           var ruf = karte.querySelector('.hilfe-ruf');
           if (ruf) ruf.hidden = true;
           zeigeRaetsel();
+          if (neu === 'stufe2' || neu === 'stufe3') {
+            var neuBlock = karte.querySelector('.' + neu);
+            if (neuBlock) {
+              var ruhig = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              neuBlock.scrollIntoView({ behavior: ruhig ? 'auto' : 'smooth', block: 'center' });
+            }
+          }
           pruefeBeute(true);
           chipsAktualisieren();
         } else {
