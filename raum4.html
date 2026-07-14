@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#14161c">
 <title>Raum 4 · Escape Room</title>
 <script>
-/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand.
-   Fail-open bei blockiertem Speicher (Privat-Modus) — Spielfluss vor Strenge. */
+/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand. Fail-open bei blockiertem Speicher. */
 try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.html'); } catch (e) {}
 </script>
 <style>
@@ -17,6 +16,7 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -25,14 +25,12 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
   }
   :where(h1, h2) { text-wrap: balance; }
   :where(p, li) { text-wrap: pretty; }
+  img { max-width: 100%; height: auto; display: block; }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
   @media (forced-colors: active) {
-    :where(a.karte, .platzhalter) { border: 1px solid CanvasText; }
+    :where(a.karte, .raetsel, button, input) { border: 1px solid CanvasText; }
   }
 }
 
@@ -41,9 +39,11 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
     color-scheme: dark;
     --bg: #14161c;
     --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
     --text: #e8e6df;
     --gedimmt: #9a978e;
     --akzent: #d9a441;
+    --gruen: #7fb069;
     --linie: #33363f;
   }
   body { background: var(--bg); color: var(--text); min-height: 100svh; }
@@ -52,18 +52,67 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
   a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
   header.kopf { text-align: center; margin-block: 1rem 1.5rem; }
   .siegel { font-size: 2.4rem; display: block; margin-bottom: 0.4rem; }
-  h1 {
-    font-size: 1.35rem;
-    letter-spacing: 0.05em;
-    margin: 0;
-    color: var(--akzent);
-    text-transform: uppercase;
-  }
+  h1 { font-size: 1.35rem; letter-spacing: 0.05em; margin: 0; color: var(--akzent); text-transform: uppercase; }
   .untertitel { color: var(--gedimmt); margin-top: 0.3rem; font-size: 0.92rem; }
 }
 
 @layer components {
-  .inhalte { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+  .inhalte { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+  .raetsel {
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .raetsel.geloest { border-color: var(--gruen); }
+  .raetsel h2 { font-size: 1.05rem; margin: 0 0 0.6rem; color: var(--akzent); }
+  .raetsel img { border-radius: 8px; margin-bottom: 0.75rem; }
+  .raetsel .auftrag { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+
+  .antwort-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .antwort-form .fix { color: var(--akzent); font-weight: 600; letter-spacing: 0.05em; }
+  .antwort-form input {
+    font: inherit;
+    flex: 1;
+    min-width: 7rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--bg);
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .antwort-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+  .antwort-form button {
+    font: inherit;
+    min-height: 48px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .antwort-form button:hover, .antwort-form button:focus-visible { border-color: var(--akzent); }
+  .antwort-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+  .meldung { min-height: 1.4em; margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--gedimmt); }
+
+  .stufe2 {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+  }
+  .stufe2 .folgefrage { margin: 0 0 0.7rem; font-style: italic; }
+
+  .geloest-text { color: var(--gruen); font-weight: 600; margin: 0.75rem 0 0; }
+
   a.karte {
     display: block;
     background: var(--flaeche);
@@ -80,14 +129,6 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
   a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
   .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
   .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
-  .platzhalter {
-    background: var(--flaeche);
-    border: 1px dashed var(--linie);
-    border-radius: 10px;
-    padding: 1.5rem 1.25rem;
-    text-align: center;
-    color: var(--gedimmt);
-  }
 }
 </style>
 </head>
@@ -95,21 +136,108 @@ try { if (localStorage.getItem('sf_tuer4') !== 'offen') location.replace('index.
 <main>
   <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
   <header class="kopf">
-    <span class="siegel" aria-hidden="true">🌑</span>
+    <span class="siegel" aria-hidden="true">🏗️</span>
     <h1>Raum 4</h1>
-    <p class="untertitel">Noch verhüllt</p>
+    <p class="untertitel">Der Neubau</p>
   </header>
 
   <div class="inhalte">
-    <div class="platzhalter">
-      <p>🛠️ Dieser Raum wird noch eingerichtet —<br>hier entsteht euer nächstes Rätsel.</p>
-    </div>
-    <!-- ╔═ RÄTSEL FÜR DIESEN RAUM HIER EINFÜGEN ═╗
-         Platzhalter-Div oben ersetzen durch eure Inhalte:
-         Karte:  <a class="karte" href="mein-raetsel.html">…</a>
-         Text:   beliebiges HTML (Bilder als data:-URI einbetten).
-         ╚═ (self-contained bleiben: keine externen Quellen) ═╝ -->
+    <section class="raetsel" data-key="r4a">
+      <h2>🎒 Die vielen Köpfe</h2>
+      <p class="auftrag">Hinter diesen Mauern lernen viele — doch wie viele genau?
+        Schätzt: Wie viele Schülerinnen und Schüler besuchen unsere Schule zurzeit?
+        <em>(Auf 75 genau reicht.)</em></p>
+      <form class="antwort-form" data-stufe="1" data-salz="r4a" autocomplete="off"
+            data-hashes="5baa50d6d2ccc75b681b76dd827576bee14e3fc34c3854fea530a5e77c2f8819,d61eee15a73068df80139a36ddc917bb1daa718fbe3345a70a99f8893b8016c4,4524557242807eacd08be73a98642c6e7949850d80412f37be5beee08f9a5d63,b78429a717139d89a691cdf9ff84f5a00b2ba948a374a31aad0a00971e0de045,0926efdba76a8ceeb14a118f8ab7eb1077e7a976b037fcbb495c71b630812ebf,0564fcc7d5dde70d654aa34f6e920353e92ddd0fa4ffe65fabb41a4746f64ab3,7cfb29570ed867e3f615723c3f19a160760fa970eec5b2f7af08aecb50d2cf14,78f9baf7fd371461b650a0247d94881e9658d3fa73b08483639fb355c1a1c769,56f523923f38b5a6e29998321d443bf954befa15cc1d1bc8ae7c1e78faaa2f10,87e8f37207a07903de410db4d363e14e8c047e35a74295855647012d0bf3b4f2,e02004ba6393c7972d87f2807aeec4dbf792c1891d47598e7d954d3d78635fd5,a3fb0cf650f69475626055651d0d484880af1af9c96ea967e785a14f3bff1a70,bc3fb2525775b57076bbf2e743eafb06791d5f7836f9175b59823df54acd3ebe,7bf9cae57644bf230ba48b5738c9e17048c94ef5fa0c22fc04f4e46a2790db86,fce583781898f2e2b9f9925863896d5a963f4586aa57b1587b0f2b08ba0f2f8a,2f854cadab5751492e05dff4680270db73d960878b47c54411d4498161f1f00d,ae6cc52aabff5a38fc6276a7c2e848cbcdfb764f0025a97250e2b2507da1e223,69ba3c21ee2b65ef2e5f0d7885da5977a936ef9a5c709c390ba2a9f2b9fac05d,8750b902b9f5ebc05f9b9b8eaa97eeb603618b1bc92b060adb5e8b6ebf66d188,19d0b090b0884e395d741f0f7b707d4c4dcfb9c8ee87c8641fae340d65f8f4ee,efeac1e2ff39b6ac356e3562b7281deb9f6f1e6f5d513b82913a7a8859bb26a5,bc6df34c90b87933f5137ddb432777213c119670267a49f466ed33dcab65ce56,41aefa75f879ff063630ceabc8c501a869c80fd34fd621cb0e7bba09caa0091f,6f24e987beec9334961953624f98e72396c97b593c2a95694f047e5a58f59d20,dc1fb4199bcc23d489011cfdf2a01378226756f1df57ea06a58dfdfaf1e9345c,d4b212a794e9a5c6b2a1323944027780937124eebbdd283a05d7fcc0c6209501,8908bc5d3bdf36bfce5ed6d5e43d45e3a96412d066ef72db487add84d50b045f,e0d4b7ed91e5393927c279c2a068d877eb33d5ee1258e79b580b9f4c13235e03,23624ebaa8889057be2d0fd7c59fca990cab2ed56e3ec1cbc04de2286bdfb623,c04a4ff572c9cbf8b559aa0573e1260e85e0ac0186dbe1f90005e3611692e0ec,831648264f1ca1561690a588b97e5419ee9af08713cb23abaf03e6c51f1e83c7,78041340b5dbc615c43ef00a680af002599d8d66997b5d1d2fe0067790e5accc,997f8b9aa550b05c8614c7929c821c79c366b676853aca1040f5568a16f5dbfd,797868025d1e9f589905d40471d669f4161504d1d990b7cb2181d5355f22d047,eb68e75a53f42707da14d30860a0bbf5f5a631d6c9a87e1eb38c641e8a0efc2d,a65d14a6e01d5c53df3731fa9de75982079cb4bbfcf75d1fd597a6f5d241382f,8dd4883007541c80c41c52f7d437c06dc97202e547ceba3cac4fba4d35fb16f7,466907325f2ead0398b4eca6d73bce8c0a3bb2891b04b349e7f8702c3f3c4f03,3f5426240bf7923b374669d3678e57ec75fcc5a6bf47ffb043f4c5bb41961104,ac21581724a77fe2ce94bf66a9c5baf3d942cf9b5db59af84bca07c2e1dd2cbe,3a61cbaefd6e6109efe3a4fd94df5a9d239126e72bea34e31506d79b4eb311c1,d366fa565931c8542cdef1eba8cd62f240aec2ef342c75f8ba1d9801593e47de,c3edfe5cb750ed5c11933e08c0f6199c5a40121b9a4e9c68b0c10dff40298bda,941be046e98f263c825b8af45777e874494e64695b4574788bc2a351cb320cd4,8e77c67cf70388c9c10e0ef106c4a7615718dd7d9eac1afbe0426f55a57f099f,abe6cfdf7197c468054708c8343a72d034c3eaa6915ed70d4a2fdf57c6b24ec2,b392dbda92128342e7f2703f087a00ce1c558a48fcf752e0f7c58951d2653320,f1ca0195b26e50a8293aae73567ff501c97d54c52d81154ce21e0d171f1930ef,5373fb144402a88678bba7873b4bd13e3fda09af00c0960116b44e173846cd02,0a426f1536239fc5aee2073852715d7a212ea06569f2f872e9a79b681719e586,3d899512112900557ec9ce04d7446ab87ca11e9e3a8af58f9a8ea0c333b74c77,4a12db0e90875b6d117ea5702bb4f103d3b38c4c183cac6f5dff43f406d38a04,ae7006c02ee87c7f04bfde1b31d2fd7d23f28a629ee144079f4dc15ffdc07309,d93a7d339192e25f8a6e98eaf6ac29a1108e40b11fb03b424617abd7a3202feb,5c9861b1d191ee773bea049b9b1f592c65b777a374d14c9e0b8b1d367701d0fd,b3367d4aa3f3987e6a2a4e64c8e0ed8c36dd6bfb1a6d6a053ca083281f88986c,7e62e63e6c2646c0b26f70348899fdbc1da53c27cc9683478d11f537e2895a2b,288786733234b0bb5c9f58bc582426917a799c888c5e1d43c303202e811e5d17,9cda8bea8a7a0843ea52c875c7e33b57347783111b90d86e843222e269b1a789,fe029263310702f106f3500ec505da917c6e401fc0d0cc94952748940c67a242,c1c87360aee681dca9b87e1adc315d36636590f660babaa1e60ed82165cda367,0953f0cad4104d6c8a1e1ec6590da33712639868ee918037d04c50cf83f27696,7cb41f4b78c57083c0814dcb2014b6228cd1a06db6b90ddb08ea2ba352213d99,1eaecf8608d7125c30904eca74483e4685da17ea8c758d5cd161ad57aec329c8,26b1b6a75a147eab65b7dd12aada650553567e3ef281819d7e8ab4e5572a13c7,ac73d14c5fde1162a5058b80e8e7613424ce5942ca89dd7cda757db539e8ae33,e6b0e7053a51ebec224bbd11c537114a897dfcee82528d2b4607d3f81a8b1e06,4376afc885825801fb3f762696bb5a6892149ab38445b7a9285a8dc0b767dbec,85c7e5924445d6e20831af208136f75eb5de75efffe64db36eb13cc4d3d753f8,c737b747fc18f5c23ebfb2e9962542d2bf7c1dceeab086f7ee6e30c670500fe6,4712de53e33513b419d8ce29968ae73432591a083dfd4344e56e29d940da200c,cefa7203ec7256a3a864fb0fcd6653d71d6393822b5d39d98a626e3c4a70c2ec,f32cd3f2711398201e60b532fe2d46c5c0a52176312a0f189651eebfc706eea1,55360cafb81d09725005ca4c5b2f7e8fc500d56a141c3158376c123a20e7b69c,0c32d2c660f2277c0564433845e1e78942ea84d30b7662799731caf17fdbdd96,d892cc73fe1cbafdc876c253acf73084040e7a6089fc972f4d9f03c7ab30a322,8c43a120778c6e9b6f94ec79cd92deb4c536af967f735032f414beebea92013f,9f1243b1c21c86891c76362fb01344abc4368a4c1f24895d40e072d5ad8b05a9,0433636a63a559827ff7f9fb6c216bacd68e78fb183b6ab1ed91b38f4693b991,50d6fb73351ee11af2a4db3dba40d3e42fef1fb2b91a887bd10fb0305d330e06,a8fda765b3dcbc56d58753ed12b3c1dfdfef192dae1a2ac73aa7b8ef2dc8bbd1,ec6a971a63f48b578183f17823b7b462563e08d81f570c6dadec363202fc1de6,209c79a3d0e0ed881d1a7428da7a4fe4a576d9d75dae31591d11d045635429e4,6c845d6ce66cc4039ee66dca4a3df769d9d24a905cb5b8df438347a25da876cb,24e8108228a78d2b7bc53cc3c43503d9150e906c871db4f88c6c033c6a91b3d6,3d7deaa171a55f7d1689b4661401642b28a6cbd20576a13bb22f93d9b908de08,7985c5f16fc6c4589ab09fb0a072db3f136c347765e5c6509c790ab155149812,a3377ef652eb63487be86bd6326a38c30cb6ce3160aa8733a42e1030963f374a,5c786222f86b17e48414697e08700ccad9f0cf8a55dd6d9ce18b8e06f75e5333,a26d9383a8109488844ded532ff922e9afb1f57ff3007b455a5f6df4a360e1d9,579464ec896c5c67a6eb4e315ac49fd3fe329d385ad1055cb47733cbb0c4595e,360d9786b4ded969faf2ce436369955b589344dd5c01ddda922ee74d4f7588dc,407c211fa9de53116f09d01924e403379aaadb2a258ebb2c1b4f1131277f8388,e4f5dcf15c610327f2309732a3397c73ec6986ba79924acf31996c768c4852f1,fd67690f0798229ff6139a119896120cb0558679c0ab1eda2d829ffdce47e5ea,01d4bd2d8c51c881f75499da2e7d4395a5e94f78e50535c7914ad0dd69f84f4f,a09aeb519102e55fb2597c25fc82a1ec99c0d3488a80ca3f9faae0b87d743126,73f4a99ae1ef54419825d99a2590b2a2cb646c579ee097b12871d1434af85615,ce22fbb70c7f7b88ef7dcbed493508479e8fb2271be28ec17d037e532e38f615,d4c25113b486b22fb979b1cab577a1418970c1421d5f67e144955bc9f4ae8d37,fe3094b931ae11a0bb70634266d157821c64ef064e7327e4cf18b1b91887a64d,21e1ae7e194874d78b92b1dce0bc969a051739289ac88b1dde19e648bd1f2166,fa356af7f31cd736b06fb01726f9746cdb61ae8238ff778464d17147b348cf4f,7996f5e2ef2d9594f42c57cadcc7bcee49aba629c965e8e1f291346a9ebf58ca,30b654d0f9f888af2f97af677e7b6d86c9f493c5381d8f784a0af25f51595d4f,10b5f863673397d6d61fca66b692f275b181563bcd84fcde84c6933ae2b55db9,1fd40a691e853a5dc32fed344380b46a38f1ef5784beae3b9b1309785c5c17ca,9dc52172aaf189f1825d86db397e69f35c945c6548fa084680f3ffc388b83776,bd28888f91d6cf122a57c6823d8fa70f0c90316ca760063c02c8b695c0eb5f02,3210b8733525d2bb93d2d768ce026e512fcf3226e81d3ced52d28cbe8b380963,ffb303c6ad1529b9a98dd7a92918bf955ec5c8ccc5d4ea6a14b19e43591d8509,c6160563390088861639466da3150eefaa968e0ce10b7eecffa60df86193903f,2f7151e4ff516771b838ab6a2bc1164c5dc5e7bc4c80b931d51e0d24c74ea769,32355dc794cf3fc39a861a1a28d78aebb71c026fe69619e6d99480b7556ac88e,6b68d57c0c9e0c43e6093f5db845add08da24ab7edb0081a8f7bb5c4f93a765a,11cd159f819fbdbb559af00e6cec9e5de21a64584db7d3dbaf264e89ad9da668,da8a59ff1dc15288410e89e12fac1cd8d0ecb38dc4e5b56841d676a3c7b3d17f,95f48c2e61bf246e8f46034e0cae1945055696fa65641ad7172e8acea99524f6,599d25700ce98ffc218dce481f73862b14b6e5896071176ea582398a4b9ffd78,1d2c7afd01deea659b7e656bba18f5404dbbadfccd6a191a2ccea66d76faf7dd,35ebfbb12ae4d147b6328c0ee618d183d7b94341b19d870e946ef022a09d35e1,b081e2d6b7b63e9c97aecd6aca80147cbae52d7b7fdbb3fc237f1d7f82581e4c,c6b02fb60128445803d8a37dc27c5aa52b63f24e8da51b8ecb7401b2bb3d1670,84f8598c511d3cef37912bdfe119115aec759446a5345dd33d835a2a8828ad11,963ad8d55d7b80bb4b809ab9d3e088c9c30e7e9a27e1d6d9b66103adadd5f2e5,a0f68582a68a13695926f27db94b3624420e40e513d172337460e7a1902a5d9a,e7729b3ea950829d57a7d26e221048534494ab5472d9ebf47a7b8f4af5f84af9,55ff85380a44a7237593ce1eec03d2d9cdaabd47595ba454dfd82bd0b450dcd9,66911c777b20043c7d81028e895cb3af757eadd73c4b18dbb2385aacd26114ff,becc3fe75b72867343c04158b657e2938b6612f589517051338510e98d3fffdc,b40180d31b095e63aa23699273c82a2002369faf73591a2c2213e2969b89e162,4b89f08508360a5774f1eb3c133e3caed10fc84d4be02c0bb5218b22f75b191e,bb1526f190db158a1c715eafb6c0bc4484d611f960616f3757462b26c2cc8e69,1a3ee7d68b95cc56fc883067e7146e137f5491bda55cdc0a8cdeb0ef462ea88b,0c587379f0eba3eb9a762cabbe235add9fe2de6127000265105b9140740e0a2e,e0520a81b1cd81e907d5ce3fdf54d46ee505e0d1cbab3f3cdfd29aedd68bd1f4,708ba0b346b52423d692ba1ae6c4e6301479de11e4829d7c47ff10ad7fce3354,81cbae911a85c327efe6eb67e1efddc802c6e65ad9b5ffaf5570028294efb9d2,d4586e85368d3700cb78d3ba5abeb0f7300e9ef26d28d241c81ae55a63a61526,0b1e9235447ebe58eb67c1b3222b7334295791af11b96cd2e15b3278b32553a5,05e3e57e1f4c6005f86891fa3006ca9219037b40f375cfca2e76299025125d0d,affffe8fb95ae3a93077ffc809f19e839837604ea571ee74a75afaa8f03f44f7,8531eb845a215a20fde5f1db537c73c8842cf21e559e6830d8e2f169574cb255,a827c569079e418b2263f03db6625b961dadb349642816dbd245abb5e46096f6,67807128271089cb99bdf09963e483cf76e5c41759104408985774ca556c20f5,ef1dd4021d53e90bc82334f85feb0f41c653f5d1bcbdcd4dda53bcab35d1acb9,19c461c5d8bda6eae425144dc07296b2ef11a2b9c422e73ee9d3dfdf3ae409f1,cd98bbbba5debf47da0c99763a829c44bb2c10d0eac12f62f8f9bc16f695116e,b1e51fd70695ea97db3bac41e5eae83bbc2e1d617a494a64b2b000bf1713edc9,4722d3c4e1cdda2488682fac37252174d8378d512609a262ddaee35bee3d8b62,58ebb5d2e8de7d3ef700ae8ab1b7aaf1c82c44feeb1a620f2d2efdcef4298a89"
+            data-fehltext="Zu weit daneben — beratschlagt euch und schätzt neu.">
+        <label for="r4a-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Geschätzte Schülerzahl</label>
+        <input id="r4a-eingabe" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="····" required>
+        <button type="submit">Prüfen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Gut geschätzt — nah genug an der Wahrheit.</p>
+    </section>
+
+    <section class="raetsel" data-key="r4b">
+      <h2>📚 Die Lehrenden</h2>
+      <p class="auftrag">Und wer bringt all diesen Köpfen etwas bei?
+        Schätzt: Wie viele Lehrkräfte unterrichten hier zurzeit?
+        <em>(Auf 10 genau reicht.)</em></p>
+      <form class="antwort-form" data-stufe="1" data-salz="r4b" autocomplete="off"
+            data-hashes="9baaa3d6466fd6fb1bab2eaf83dcc18dacb215333c62e8ea7fbe0894a0df3ec3,0c35dda3a61c5b7588c41408d5708de2e89695f982b986450fac3fd10d2479f7,abc030c53fdfc5e6db493b744c5a6e7e944313a04e916966125af791a3b39b47,b08c23580c67379766d98210fa02a867c8b6e8318bdb21cbc4d3dd6979acdc29,fae2db7f352478150fabff80ec86bffef7e06707e80dff6742735fbcae5b2553,d3afdb56eebd84eaa1214aa479f8e0bca4e4b89bca262f6170c16a21c488a768,0539efcb3d30a9bcb1ada15bfc51167752e634bd3675369d5eeee986681a63b5,8f9886d1735624dabc4177aa702c273f1c2295d1949d0a702241424f240dd5e3,092027216a5a9ea99c95166581b14296d81f6fbda5d2292149cd4e5a5fabdb08,64140e4bc79eecec774a87f9c93be391c4d5bbee82f81dd6169fc6fc186100eb,05ce70bac19fb81d779b0d2dc2791c6079eadbd9a9dd0ae0ecfcdf79d0e8964d,c5a1df1b59e0c7a65b1baf433bffa4ad4328302f84acd0cc1b9e814c0ed92046,767ca36549c9b47968c0ec0c2d00d256093d5943bb29632fcaf27fee1862443d,8b674dd41b358b27501ce5f8062769a845d590fc82a58da34707460452b67e77,9e2387358768ef663ad753165a89213aaefee32ca900cc81c7275f9caa1a4b03,95ba4bb584b7df0e211856aaebecb182b3134859cd7d2b30939f2c2ceef97e3e,cdfeffea961b40ca1a013af5621f76cab4c09fb62aaa651c64c3cda2a7597897,50455c8e69da8febb2be5ca87f4fb4cc7c7974a218077b8190b48cb5a722e897,70efb2d0dbf2a217260cb723c4618d8973f5e05433d4073666062514d8e6dbbe,ad0c2977d03190148e05b6e1b66f2b14144d29046be86557e1e92a6f88713ed0,2e819a93aa59301232d56ef1f2fbad86ae947e4710cc2c894b85021684544a19"
+            data-fehltext="Das Kollegium schmunzelt — versucht es noch einmal.">
+        <label for="r4b-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Geschätzte Lehrerzahl</label>
+        <input id="r4b-eingabe" inputmode="numeric" pattern="[0-9]{1,3}" maxlength="3" placeholder="···" required>
+        <button type="submit">Prüfen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Gut geschätzt — das Kollegium ist beeindruckt.</p>
+    </section>
   </div>
 </main>
+
+<script>
+(() => {
+  'use strict';
+
+  // Gesalzener SHA-256 — Lösungen stehen nirgends im Klartext.
+  async function loesungsHash(wert, salz) {
+    const data = new TextEncoder().encode(wert + '\u00b7' + salz + '\u00b7schulfest');
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function normalisiere(s) {
+    return s.trim().toUpperCase().normalize('NFC')
+      .replace(/^(FRAU|HERR)\s+/, '');
+  }
+
+  function zeigeGeloest(raetsel) {
+    raetsel.classList.add('geloest');
+    raetsel.querySelectorAll('form, .stufe2').forEach(el => el.hidden = true);
+    raetsel.querySelector('.geloest-text').hidden = false;
+  }
+
+  document.querySelectorAll('.raetsel').forEach(raetsel => {
+    const key = raetsel.dataset.key;
+
+    let stand = null;
+    try { stand = localStorage.getItem('sf_' + key); } catch (e) {}
+    if (stand === 'geloest') zeigeGeloest(raetsel);
+    else if (stand === 'stufe2' && raetsel.querySelector('.stufe2')) {
+      raetsel.querySelector('form[data-stufe="1"]').hidden = true;
+      raetsel.querySelector('.stufe2').hidden = false;
+    }
+
+    raetsel.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const input = form.querySelector('input');
+        const meldung = raetsel.querySelector('.meldung');
+        const wert = normalisiere(input.value);
+        const hashes = form.dataset.hashes.split(',');
+        const treffer = await loesungsHash(wert, form.dataset.salz);
+
+        if (hashes.includes(treffer)) {
+          meldung.textContent = '';
+          const stufe2 = raetsel.querySelector('.stufe2');
+          if (form.dataset.stufe === '1' && stufe2) {
+            form.hidden = true;
+            stufe2.hidden = false;
+            try { localStorage.setItem('sf_' + key, 'stufe2'); } catch (e) {}
+            stufe2.querySelector('input').focus();
+          } else {
+            try { localStorage.setItem('sf_' + key, 'geloest'); } catch (e) {}
+            zeigeGeloest(raetsel);
+          }
+        } else {
+          meldung.textContent = form.dataset.fehltext || 'Noch nicht — schaut genauer hin.';
+          input.select();
+        }
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>
