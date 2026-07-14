@@ -154,6 +154,29 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   }
   .beute p { margin: 0; color: var(--akzent); font-weight: 600; }
 
+  /* Zeitungsausschnitt — Belohnung nach gelöstem Rätsel */
+  .artikel-papier {
+    background: #f2ead6;
+    color: #2a2620;
+    font-family: Georgia, "Times New Roman", serif;
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin-top: 0.9rem;
+    box-shadow: inset 0 0 30px rgba(90, 70, 40, 0.15);
+  }
+  .artikel-kopf {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #7a6c52;
+    margin: 0 0 0.4rem;
+    border-bottom: 1px solid #c9bda0;
+    padding-bottom: 0.3rem;
+  }
+  .artikel-papier h3 { font-size: 1.15rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  .artikel-papier p.text { font-size: 0.9rem; margin: 0 0 0.5rem; text-align: justify; hyphens: auto; }
+  .artikel-papier p.text:last-child { margin-bottom: 0; }
+
   a.karte {
     display: block;
     background: var(--flaeche);
@@ -202,13 +225,22 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
         <button type="submit">Prüfen</button>
       </form>
       <p class="meldung" aria-live="polite"></p>
-      <p class="geloest-text" hidden>✓ Der erste Kapitän hat einen Namen.</p>
+      <p class="geloest-text" hidden>✓ Der erste Kapitän hat einen Namen. Das Archiv gibt einen Zeitungsausschnitt frei:</p>
+      <div class="artikel" hidden
+           data-b64="SGFzcGUuIE1pdCBnZXJhZGUgZWlubWFsIDIwNSBTY2jDvGxlcmlubmVuIHVuZCBTY2jDvGxlcm4gc3RhcnRldGUgZGllIEdlc2FtdHNjaHVsZSBIYXNwZSBpbSBKYWhyIDE5ODYg4oCUIGlociBlcnN0ZXIgU2NodWxsZWl0ZXI6IEhlcnIgQnVyZXNjaC4gVW50ZXJnZWJyYWNodCB3dXJkZSBkaWUganVuZ2UgU2NodWxlIGltIGVocnfDvHJkaWdlbiBHZWLDpHVkZSBkZXMgRXJuc3QtTWVpc3Rlci1HeW1uYXNpdW1zLCBlcmJhdXQgMTkwMy4KCkF1cyBkZW0ga2xlaW5lbiBBbmZhbmcgd3VyZGUgZWluZSBFcmZvbGdzZ2VzY2hpY2h0ZTogSW0gSmFociAyMDAxIGZlaWVydGUgZGllIEdlc2FtdHNjaHVsZSBpaHJlbiBlcnN0ZW4gZWlnZW5lbiBBYml0dXJqYWhyZ2FuZy4gSGV1dGUgesOkaGx0IHNpZSB6dSBkZW4gZ3LDtsOfdGVuIFNjaHVsZW4gSGFnZW5zLg==">
+        <div class="artikel-papier">
+          <p class="artikel-kopf">Hasper Nachrichten · Aus dem Archiv</p>
+          <h3>Erfolgsgeschichte einer Großschule</h3>
+          <div class="artikel-text"></div>
+        </div>
+      </div>
     </section>
 
     <section class="raetsel" data-key="r2b">
       <h2>🌱 Die Gründungsmannschaft</h2>
       <p class="auftrag">1986 fing alles klein an. Mit wie vielen Schülerinnen und Schülern
-        startete die Gesamtschule damals?</p>
+        startete die Gesamtschule damals? <em>Ein alter Zeitungsausschnitt kennt die Zahl —
+        er gehört dem, der den verschlüsselten Namen knackt.</em></p>
       <form class="antwort-form" data-stufe="1" data-salz="r2b" autocomplete="off"
             data-hashes="75d85f65f20f640b446d37f7d59f1a780cd9a5aa3476ec3627c8e8191e673042"
             data-fehltext="So viele waren es nicht — der Altbau erinnert sich genau.">
@@ -249,6 +281,20 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
     raetsel.classList.add('geloest');
     raetsel.querySelectorAll('form, .stufe2').forEach(el => el.hidden = true);
     raetsel.querySelector('.geloest-text').hidden = false;
+
+    // Belohnungs-Zeitungsausschnitt dieses Rätsels aufdecken (kodiert abgelegt)
+    const artikel = raetsel.querySelector('.artikel');
+    if (artikel && artikel.hidden) {
+      const roh = Uint8Array.from(atob(artikel.dataset.b64), c => c.charCodeAt(0));
+      const ziel = artikel.querySelector('.artikel-text');
+      new TextDecoder().decode(roh).split('\n\n').forEach(abs => {
+        const p = document.createElement('p');
+        p.className = 'text';
+        p.textContent = abs;
+        ziel.appendChild(p);
+      });
+      artikel.hidden = false;
+    }
   }
 
   // Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind.
