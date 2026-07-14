@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#14161c">
 <title>Raum 2 · Escape Room</title>
 <script>
-/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand.
-   Fail-open bei blockiertem Speicher (Privat-Modus) — Spielfluss vor Strenge. */
+/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand. Fail-open bei blockiertem Speicher. */
 try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.html'); } catch (e) {}
 </script>
 <style>
@@ -17,6 +16,7 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -25,14 +25,12 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   }
   :where(h1, h2) { text-wrap: balance; }
   :where(p, li) { text-wrap: pretty; }
+  img { max-width: 100%; height: auto; display: block; }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
   @media (forced-colors: active) {
-    :where(a.karte, .platzhalter) { border: 1px solid CanvasText; }
+    :where(a.karte, .raetsel, button, input, .beute) { border: 1px solid CanvasText; }
   }
 }
 
@@ -41,9 +39,11 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
     color-scheme: dark;
     --bg: #14161c;
     --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
     --text: #e8e6df;
     --gedimmt: #9a978e;
     --akzent: #d9a441;
+    --gruen: #7fb069;
     --linie: #33363f;
   }
   body { background: var(--bg); color: var(--text); min-height: 100svh; }
@@ -52,18 +52,108 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
   header.kopf { text-align: center; margin-block: 1rem 1.5rem; }
   .siegel { font-size: 2.4rem; display: block; margin-bottom: 0.4rem; }
-  h1 {
-    font-size: 1.35rem;
-    letter-spacing: 0.05em;
-    margin: 0;
-    color: var(--akzent);
-    text-transform: uppercase;
-  }
+  h1 { font-size: 1.35rem; letter-spacing: 0.05em; margin: 0; color: var(--akzent); text-transform: uppercase; }
   .untertitel { color: var(--gedimmt); margin-top: 0.3rem; font-size: 0.92rem; }
 }
 
 @layer components {
-  .inhalte { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+  .inhalte { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+  .raetsel {
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .raetsel.geloest { border-color: var(--gruen); }
+  .raetsel h2 { font-size: 1.05rem; margin: 0 0 0.6rem; color: var(--akzent); }
+  .raetsel img { border-radius: 8px; margin-bottom: 0.75rem; }
+  .raetsel .auftrag { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+
+  .geheimtext {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 1.6rem;
+    letter-spacing: 0.35em;
+    text-align: center;
+    color: var(--akzent);
+    background: var(--bg);
+    border: 1px dashed var(--akzent);
+    border-radius: 8px;
+    padding: 0.7rem 0.5rem;
+    margin: 0 0 0.75rem;
+  }
+
+  details.hinweis { margin: 0 0 0.75rem; font-size: 0.9rem; }
+  details.hinweis summary {
+    color: var(--gedimmt);
+    cursor: pointer;
+    padding: 0.3rem 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  details.hinweis summary:hover, details.hinweis summary:focus-visible { color: var(--akzent); }
+  details.hinweis[open] summary { color: var(--akzent); }
+  details.hinweis p {
+    margin: 0.4rem 0 0.2rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+
+  .antwort-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .antwort-form .fix { color: var(--akzent); font-weight: 600; letter-spacing: 0.05em; }
+  .antwort-form input {
+    font: inherit;
+    flex: 1;
+    min-width: 7rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--bg);
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .antwort-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+  .antwort-form button {
+    font: inherit;
+    min-height: 48px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .antwort-form button:hover, .antwort-form button:focus-visible { border-color: var(--akzent); }
+  .antwort-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+  .meldung { min-height: 1.4em; margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--gedimmt); }
+
+  .stufe2 {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+  }
+  .stufe2 .folgefrage { margin: 0 0 0.7rem; font-style: italic; }
+
+  .geloest-text { color: var(--gruen); font-weight: 600; margin: 0.75rem 0 0; }
+
+  .beute {
+    border: 1px solid var(--akzent);
+    background: rgba(217, 164, 65, 0.08);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    text-align: center;
+  }
+  .beute p { margin: 0; color: var(--akzent); font-weight: 600; }
+
   a.karte {
     display: block;
     background: var(--flaeche);
@@ -80,14 +170,6 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
   .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
   .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
-  .platzhalter {
-    background: var(--flaeche);
-    border: 1px dashed var(--linie);
-    border-radius: 10px;
-    padding: 1.5rem 1.25rem;
-    text-align: center;
-    color: var(--gedimmt);
-  }
 }
 </style>
 </head>
@@ -95,21 +177,136 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
 <main>
   <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
   <header class="kopf">
-    <span class="siegel" aria-hidden="true">🧭</span>
+    <span class="siegel" aria-hidden="true">🏰</span>
     <h1>Raum 2</h1>
-    <p class="untertitel">Noch verhüllt</p>
+    <p class="untertitel">Der Altbau</p>
   </header>
 
   <div class="inhalte">
-    <div class="platzhalter">
-      <p>🛠️ Dieser Raum wird noch eingerichtet —<br>hier entsteht euer nächstes Rätsel.</p>
-    </div>
-    <!-- ╔═ RÄTSEL FÜR DIESEN RAUM HIER EINFÜGEN ═╗
-         Platzhalter-Div oben ersetzen durch eure Inhalte:
-         Karte:  <a class="karte" href="mein-raetsel.html">…</a>
-         Text:   beliebiges HTML (Bilder als data:-URI einbetten).
-         ╚═ (self-contained bleiben: keine externen Quellen) ═╝ -->
+    <section class="raetsel" data-key="r2a">
+      <h2>📻 Der verschlüsselte Name</h2>
+      <p class="auftrag">Im Archiv des Altbaus liegt ein vergilbter Zettel. Darauf nur ein Wort:</p>
+      <p class="geheimtext">UNKXLVA</p>
+      <p class="auftrag">Es ist der Name des ersten Schulleiters der Gesamtschule Haspe —
+        verschlüsselt. Die Caesar-Scheibe unten kennt den Weg zurück.
+        Wie lautet der Name wirklich?</p>
+      <details class="hinweis">
+        <summary>💡 Tipp ansehen</summary>
+        <p>Die Verschiebung ist das Jahrhundert.</p>
+      </details>
+      <form class="antwort-form" data-stufe="1" data-salz="r2a" autocomplete="off"
+            data-hashes="d3c69a0e2e3abe099b41a0b3f96abce2cf68d28b24866e76261a2533838c3923"
+            data-fehltext="Die Scheibe widerspricht — dreht noch einmal.">
+        <label for="r2a-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Entschlüsselter Name</label>
+        <input id="r2a-eingabe" maxlength="20" placeholder="NAME" required>
+        <button type="submit">Prüfen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Der erste Kapitän hat einen Namen.</p>
+    </section>
+
+    <section class="raetsel" data-key="r2b">
+      <h2>🌱 Die Gründungsmannschaft</h2>
+      <p class="auftrag">1986 fing alles klein an. Mit wie vielen Schülerinnen und Schülern
+        startete die Gesamtschule damals?</p>
+      <form class="antwort-form" data-stufe="1" data-salz="r2b" autocomplete="off"
+            data-hashes="75d85f65f20f640b446d37f7d59f1a780cd9a5aa3476ec3627c8e8191e673042"
+            data-fehltext="So viele waren es nicht — der Altbau erinnert sich genau.">
+        <label for="r2b-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Anzahl der Gründungsschüler</label>
+        <input id="r2b-eingabe" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="···" required>
+        <button type="submit">Prüfen</button>
+      </form>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Die Gründungsmannschaft ist gezählt.</p>
+    </section>
+
+    <div class="beute" hidden data-b64="8J+nrSBGVU5EU1TDnENLIOKAlCBEZXIgendlaXRlIFRlaWwgZGVzIFppZWxvcnRzOiBSQVVNIDIuIOKAlCBOdXIgbm9jaCBlaW4gWmVpY2hlbiBmZWhsdC4="><p></p></div>
+
+    <a class="karte" href="caesar.html">
+      <span class="titel"><span aria-hidden="true">🔄</span> Caesar-Scheibe</span>
+      <span class="beschreibung">Euer Werkzeug für Geheimschriften — dreht die Scheibe und entschlüsselt, was euch begegnet.</span>
+    </a>
   </div>
 </main>
+
+<script>
+(() => {
+  'use strict';
+
+  // Gesalzener SHA-256 — Lösungen stehen nirgends im Klartext.
+  async function loesungsHash(wert, salz) {
+    const data = new TextEncoder().encode(wert + '\u00b7' + salz + '\u00b7schulfest');
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function normalisiere(s) {
+    return s.trim().toUpperCase().normalize('NFC')
+      .replace(/^(FRAU|HERR)\s+/, '');
+  }
+
+  function zeigeGeloest(raetsel) {
+    raetsel.classList.add('geloest');
+    raetsel.querySelectorAll('form, .stufe2').forEach(el => el.hidden = true);
+    raetsel.querySelector('.geloest-text').hidden = false;
+  }
+
+  // Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind.
+  // Text liegt kodiert vor, damit der Quelltext nichts verrät.
+  function pruefeBeute() {
+    const beute = document.querySelector('.beute');
+    if (!beute || !beute.hidden) return;
+    const alle = [...document.querySelectorAll('.raetsel')].every(r => r.classList.contains('geloest'));
+    if (alle) {
+      const roh = Uint8Array.from(atob(beute.dataset.b64), c => c.charCodeAt(0));
+      beute.querySelector('p').textContent = new TextDecoder().decode(roh);
+      beute.hidden = false;
+    }
+  }
+
+  document.querySelectorAll('.raetsel').forEach(raetsel => {
+    const key = raetsel.dataset.key;
+
+    let stand = null;
+    try { stand = localStorage.getItem('sf_' + key); } catch (e) {}
+    if (stand === 'geloest') zeigeGeloest(raetsel);
+    else if (stand === 'stufe2' && raetsel.querySelector('.stufe2')) {
+      raetsel.querySelector('form[data-stufe="1"]').hidden = true;
+      raetsel.querySelector('.stufe2').hidden = false;
+    }
+
+    raetsel.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const input = form.querySelector('input');
+        const meldung = raetsel.querySelector('.meldung');
+        const wert = normalisiere(input.value);
+        const hashes = form.dataset.hashes.split(',');
+        const treffer = await loesungsHash(wert, form.dataset.salz);
+
+        if (hashes.includes(treffer)) {
+          meldung.textContent = '';
+          const stufe2 = raetsel.querySelector('.stufe2');
+          if (form.dataset.stufe === '1' && stufe2) {
+            form.hidden = true;
+            stufe2.hidden = false;
+            try { localStorage.setItem('sf_' + key, 'stufe2'); } catch (e) {}
+            stufe2.querySelector('input').focus();
+          } else {
+            try { localStorage.setItem('sf_' + key, 'geloest'); } catch (e) {}
+            zeigeGeloest(raetsel);
+            pruefeBeute();
+          }
+        } else {
+          meldung.textContent = form.dataset.fehltext || 'Noch nicht — schaut genauer hin.';
+          input.select();
+        }
+      });
+    });
+  });
+
+  pruefeBeute();
+})();
+</script>
 </body>
 </html>
