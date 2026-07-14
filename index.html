@@ -159,6 +159,19 @@
   }
   .tuer.offen details.tipp { display: none; }   /* offene Tür braucht keinen Tipp mehr */
 
+  /* Freiwillige Zusatzfrage (ohne Prüfung — Sammlung in der Zentrale) */
+  .zusatzfrage {
+    margin-top: 1.5rem;
+    background: var(--flaeche);
+    border: 1px dashed var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  .zusatzfrage h2 { font-size: 1.05rem; margin: 0 0 0.5rem; color: var(--akzent); }
+  .zusatzfrage p { margin: 0 0 0.5rem; color: var(--gedimmt); }
+  .zusatzfrage p:last-child { margin-bottom: 0; color: var(--text); }
+
   /* Zurücksetzen (dezent, mit Bestätigungs-Schritt) */
   details.reset {
     margin-top: 2.5rem;
@@ -301,6 +314,14 @@
       <a class="betreten" href="raum4.html" hidden>Raum 4 betreten →</a>
     </section>
   </div>
+
+  <section class="zusatzfrage">
+    <h2><span aria-hidden="true">🧮</span> Die unlösbare Frage</h2>
+    <p><em>Freiwillig — und ohne richtige Antwort, denn nicht einmal wir kennen sie:</em></p>
+    <p>Wie viele Räume hat die gesamte Schulanlage insgesamt?
+       Schätzt mutig — und bringt eure Zahl mit in die Zentrale.
+       Die kühnsten Schätzungen werden dort gesammelt.</p>
+  </section>
 
   <details class="reset">
     <summary>↺ Von vorn beginnen</summary>
