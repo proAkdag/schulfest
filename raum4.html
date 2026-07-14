@@ -133,6 +133,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
 .spalte.zieht { opacity: .85; position: relative; z-index: 5; cursor: grabbing; }
 .spalte.gewaehlt { outline: 2px solid var(--gold); outline-offset: 1px; }
 .leiste-pfeile { display: flex; justify-content: center; align-items: center; gap: 12px; }
+.leiste-pfeile[hidden] { display: none; }
 .leiste-pfeile button { min-width: 64px; min-height: 44px; border-radius: 10px; border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); font-weight: 700; font-size: 16px; cursor: pointer; }
 .leiste-pfeile button:disabled { opacity: .35; cursor: default; }
 .leiste-pfeile-info { font-size: 12px; color: var(--dim); }
@@ -538,7 +539,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
   function leisteAnfassen(sp, start) {
     sp.addEventListener('pointerdown', function (ev) {
       ev.preventDefault();
-      sp.setPointerCapture(ev.pointerId);
+      try { sp.setPointerCapture(ev.pointerId); } catch (e) {}
       var x0 = ev.clientX;
       var bewegt = false;
       var W = sp.offsetWidth + 6;
