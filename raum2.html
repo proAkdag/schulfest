@@ -85,14 +85,24 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
 
   details.hinweis { margin: 0 0 0.75rem; font-size: 0.9rem; }
   details.hinweis summary {
-    color: var(--gedimmt);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--akzent);
+    border-radius: 8px;
+    background: rgba(217, 164, 65, 0.1);
+    color: var(--akzent);
+    font-weight: 600;
     cursor: pointer;
-    padding: 0.3rem 0;
+    list-style: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  details.hinweis summary:hover, details.hinweis summary:focus-visible { color: var(--akzent); }
-  details.hinweis[open] summary { color: var(--akzent); }
+  details.hinweis summary::-webkit-details-marker { display: none; }
+  details.hinweis summary:hover, details.hinweis summary:focus-visible { background: rgba(217, 164, 65, 0.2); }
+  details.hinweis summary:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
   details.hinweis p {
     margin: 0.4rem 0 0.2rem;
     padding: 0.6rem 0.9rem;
@@ -193,6 +203,55 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
   .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
   .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
+
+  /* ── Eingebettete Caesar-Scheibe ── */
+  .scheiben-buehne { display: grid; place-items: center; margin: 0 0 0.5rem; }
+  svg.scheibe {
+    width: min(100%, 340px);
+    height: auto;
+    touch-action: none;              /* Drag darf nicht scrollen */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #rotor {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.25s ease;
+    cursor: grab;
+  }
+  #rotor.dragging { transition: none; cursor: grabbing; }
+  .scheiben-zeile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0 0 0.9rem;
+  }
+  output.ablesung {
+    font-variant-numeric: tabular-nums;
+    font-size: 1.05rem;
+    color: var(--text);
+    min-width: 11rem;
+    text-align: center;
+  }
+  output.ablesung b { color: var(--akzent); font-size: 1.2em; }
+  .scheiben-zeile button {
+    font: inherit;
+    min-height: 44px;
+    min-width: 3.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .scheiben-zeile button:hover, .scheiben-zeile button:focus-visible { border-color: var(--akzent); }
+  .scheiben-zeile button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
 }
 </style>
 </head>
@@ -211,8 +270,28 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
       <p class="auftrag">Im Archiv des Altbaus liegt ein vergilbter Zettel. Darauf nur ein Wort:</p>
       <p class="geheimtext">UNKXLVA</p>
       <p class="auftrag">Es ist der Name des ersten Schulleiters der Gesamtschule Haspe —
-        verschlüsselt. Die Caesar-Scheibe unten kennt den Weg zurück.
-        Wie lautet der Name wirklich?</p>
+        verschlüsselt. Dreht die Scheibe und übersetzt Buchstabe für Buchstabe:
+        innen die Geheimschrift, außen der Klartext.</p>
+      <div class="scheiben-buehne">
+        <svg class="scheibe" viewBox="0 0 340 340" role="img"
+             aria-label="Drehbare Caesar-Verschlüsselungsscheibe. Nutze die Tasten unter der Scheibe, um sie zu drehen.">
+          <path d="M 170 4 L 163 16 L 177 16 Z" fill="#d9a441"/>
+          <circle cx="170" cy="170" r="150" fill="#1e2129" stroke="#33363f" stroke-width="1.5"/>
+          <g id="aussenring"></g>
+          <g id="rotor">
+            <circle cx="170" cy="170" r="118" fill="#2a2e39" stroke="#d9a441" stroke-width="1.5"/>
+            <g id="innenring"></g>
+            <circle cx="170" cy="170" r="26" fill="none" stroke="#33363f" stroke-width="1"/>
+            <text x="170" y="170" text-anchor="middle" dominant-baseline="central"
+                  font-size="20" fill="#9a978e" style="pointer-events:none">⟳</text>
+          </g>
+        </svg>
+      </div>
+      <div class="scheiben-zeile">
+        <button type="button" id="minus" aria-label="Eine Position zurückdrehen">− 1</button>
+        <output class="ablesung" id="ablesung" aria-live="polite"></output>
+        <button type="button" id="plus" aria-label="Eine Position weiterdrehen">+ 1</button>
+      </div>
       <details class="hinweis">
         <summary>💡 Tipp ansehen</summary>
         <p>Das Baujahr, das euch diese Tür geöffnet hat: Seine ersten beiden Ziffern zeigen, wie weit sich die Scheibe dreht.</p>
@@ -253,11 +332,6 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
     </section>
 
     <div class="beute" hidden data-b64="8J+nrSBGVU5EU1TDnENLIOKAlCBEZXIgendlaXRlIFRlaWwgZGVzIFppZWxvcnRzOiBSQVVNIDIuIOKAlCBOdXIgbm9jaCBlaW4gWmVpY2hlbiBmZWhsdC4="><p></p></div>
-
-    <a class="karte" href="caesar.html">
-      <span class="titel"><span aria-hidden="true">🔄</span> Caesar-Scheibe</span>
-      <span class="beschreibung">Euer Werkzeug für Geheimschriften — dreht die Scheibe und entschlüsselt, was euch begegnet.</span>
-    </a>
   </div>
 </main>
 
@@ -352,6 +426,75 @@ try { if (localStorage.getItem('sf_tuer2') !== 'offen') location.replace('index.
   });
 
   pruefeBeute();
+
+  // ── Eingebettete Caesar-Scheibe (nur wenn vorhanden) ──
+  const rotor = document.getElementById('rotor');
+  if (rotor) {
+    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const N = 26, STEP = 360 / N, CX = 170, CY = 170;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const ablesung = document.getElementById('ablesung');
+
+    function baueRing(gruppe, radius, farbe, groesse) {
+      for (let i = 0; i < N; i++) {
+        const t = document.createElementNS(svgNS, 'text');
+        t.setAttribute('x', CX);
+        t.setAttribute('y', CY - radius);
+        t.setAttribute('transform', 'rotate(' + (i * STEP) + ' ' + CX + ' ' + CY + ')');
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'central');
+        t.setAttribute('font-size', groesse);
+        t.setAttribute('font-weight', '600');
+        t.setAttribute('fill', farbe);
+        t.style.pointerEvents = 'none';
+        t.textContent = ALPHABET[i];
+        gruppe.appendChild(t);
+      }
+    }
+    baueRing(document.getElementById('aussenring'), 135, '#e8e6df', 17);
+    baueRing(document.getElementById('innenring'), 102, '#d9a441', 15);
+
+    let deg = 0;
+    const mod = (a, n) => ((a % n) + n) % n;
+    function render() {
+      rotor.style.transform = 'rotate(' + deg + 'deg)';
+      const shift = mod(Math.round(-deg / STEP), N);
+      ablesung.innerHTML = '<b>A</b> \u2192 <b>' + ALPHABET[shift] + '</b> \u00b7 Verschiebung ' + shift;
+    }
+    function snap() { deg = Math.round(deg / STEP) * STEP; render(); }
+
+    document.getElementById('plus').addEventListener('click', () => { deg -= STEP; render(); });
+    document.getElementById('minus').addEventListener('click', () => { deg += STEP; render(); });
+
+    const svg = document.querySelector('svg.scheibe');
+    let dragId = null, startWinkel = 0, startDeg = 0;
+    function pointerWinkel(ev) {
+      const r = svg.getBoundingClientRect();
+      return Math.atan2(ev.clientY - (r.top + r.height / 2), ev.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+    }
+    rotor.addEventListener('pointerdown', (ev) => {
+      dragId = ev.pointerId;
+      startWinkel = pointerWinkel(ev);
+      startDeg = deg;
+      rotor.classList.add('dragging');
+      rotor.setPointerCapture(ev.pointerId);
+      ev.preventDefault();
+    });
+    rotor.addEventListener('pointermove', (ev) => {
+      if (ev.pointerId !== dragId) return;
+      deg = startDeg + (pointerWinkel(ev) - startWinkel);
+      render();
+    });
+    function dragEnde(ev) {
+      if (ev.pointerId !== dragId) return;
+      dragId = null;
+      rotor.classList.remove('dragging');
+      snap();
+    }
+    rotor.addEventListener('pointerup', dragEnde);
+    rotor.addEventListener('pointercancel', dragEnde);
+    render();
+  }
 })();
 </script>
 </body>
