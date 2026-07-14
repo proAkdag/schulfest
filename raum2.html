@@ -151,8 +151,19 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
 /* ── Bottom-Bar ── */
 .leiste { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; border-top: 1px solid var(--linie); background: var(--karte); padding: 10px 14px 12px; }
 .leiste-innen { max-width: 30rem; margin: 0 auto; display: grid; gap: 6px; }
-.leiste-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.leiste-label { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 700; min-width: 6.4rem; }
+.leiste-kern { display: flex; align-items: center; gap: 8px; }
+.leiste-labels { display: grid; gap: 8px; }
+.leiste-label { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 700; min-width: 5.6rem; }
+.leiste-spalten { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.spalte { display: grid; gap: 6px; justify-items: stretch; border-radius: 10px; padding: 2px; }
+.spalte .chip { justify-content: center; }
+.spalte.sortierbar { touch-action: none; cursor: grab; }
+.spalte.zieht { opacity: .85; position: relative; z-index: 5; cursor: grabbing; }
+.spalte.gewaehlt { outline: 2px solid var(--gold); outline-offset: 1px; }
+.leiste-pfeile { display: flex; justify-content: center; align-items: center; gap: 12px; }
+.leiste-pfeile button { min-width: 64px; min-height: 44px; border-radius: 10px; border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); font-weight: 700; font-size: 16px; cursor: pointer; }
+.leiste-pfeile button:disabled { opacity: .35; cursor: default; }
+.leiste-pfeile-info { font-size: 12px; color: var(--dim); }
 .chip { display: inline-flex; align-items: center; min-height: 28px; padding: 2px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .05em; border: 1px dashed var(--linie); color: var(--dim); }
 .chip.voll { border: 1px solid var(--gold); background: var(--goldbg); color: var(--gold); }
 .chip.cw.voll { border-color: var(--gruen); background: var(--gruenbg); color: var(--gruen); }
@@ -249,8 +260,15 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
 
 <div class="leiste">
   <div class="leiste-innen">
-    <div class="leiste-zeile"><span class="leiste-label">🧭 Zielort</span><span class="chip" data-zchip="raum1">?</span><span class="chip" data-zchip="raum2">?</span><span class="chip" data-zchip="raum3">?</span><span class="chip" data-zchip="raum4">?</span></div>
-    <div class="leiste-zeile"><span class="leiste-label">🔑 Codewort</span><span class="chip cw" data-cchip="raum1">?</span><span class="chip cw" data-cchip="raum2">?</span><span class="chip cw" data-cchip="raum3">?</span><span class="chip cw" data-cchip="raum4">?</span></div>
+    <div class="leiste-kern">
+      <div class="leiste-labels"><span class="leiste-label">🧭 Zielort</span><span class="leiste-label">🔑 Codewort</span></div>
+      <div class="leiste-spalten" id="leisteSpalten"></div>
+    </div>
+    <div class="leiste-pfeile" id="leistePfeile" hidden>
+      <button type="button" id="pfeilLinks" aria-label="Gewähltes Paar nach links schieben">◀</button>
+      <span class="leiste-pfeile-info">Paar verschieben</span>
+      <button type="button" id="pfeilRechts" aria-label="Gewähltes Paar nach rechts schieben">▶</button>
+    </div>
   </div>
 </div>
 
@@ -416,24 +434,108 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
   })();
 
   /* ── Fundstück-Chips ── */
+  /* ── Fundstück-Leiste (F11): Spalten-Paare, bei 4/4 sortierbar per Drag + Pfeilen.
+     Kein Richtig/Falsch-Urteil — das Werk setzt nichts zusammen (§18). ── */
+  var SORT_KEY = 'sf_sortierung';
+  var leisteAuswahl = -1;
+  function leisteKomplett() {
+    return Object.keys(RAUM_KEYS).every(function (raum) {
+      return RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
+    });
+  }
+  function sortierungLesen() {
+    var std = ['raum1', 'raum2', 'raum3', 'raum4'];
+    var s = sGet(SORT_KEY);
+    if (!s) return std;
+    var teile = s.split(',');
+    var gueltig = teile.length === 4 && std.every(function (r) { return teile.indexOf(r) !== -1; });
+    return gueltig ? teile : std;
+  }
+  function leisteVerschiebe(von, nach) {
+    var f = sortierungLesen();
+    var el = f.splice(von, 1)[0];
+    f.splice(nach, 0, el);
+    sSet(SORT_KEY, f.join(','));
+    leisteAuswahl = nach;
+    chipsAktualisieren();
+  }
   function chipsAktualisieren() {
-    Object.keys(RAUM_KEYS).forEach(function (raum) {
+    var wrap = document.getElementById('leisteSpalten');
+    if (!wrap) return;
+    var komplett = leisteKomplett();
+    var folge = komplett ? sortierungLesen() : ['raum1', 'raum2', 'raum3', 'raum4'];
+    wrap.textContent = '';
+    folge.forEach(function (raum, i) {
       var fertig = RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
       var text = fertig ? decodiereB64(BEUTE[raum]) : '';
       var mz = text.match(/Zielort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
       var mc = text.match(/Codewort-Teil:\s*([A-ZÄÖÜ0-9]+)/);
-      var z = document.querySelector('[data-zchip="' + raum + '"]');
-      var c = document.querySelector('[data-cchip="' + raum + '"]');
-      if (z) {
-        if (fertig && mz) { z.textContent = mz[1]; z.classList.add('voll'); }
-        else { z.textContent = '?'; z.classList.remove('voll'); }
+      var sp = document.createElement('div');
+      sp.className = 'spalte' + (komplett ? ' sortierbar' : '') + (komplett && i === leisteAuswahl ? ' gewaehlt' : '');
+      var z = document.createElement('span');
+      z.className = 'chip' + (fertig && mz ? ' voll' : '');
+      z.textContent = fertig && mz ? mz[1] : '?';
+      var c = document.createElement('span');
+      c.className = 'chip cw' + (fertig && mc ? ' voll' : '');
+      c.textContent = fertig && mc ? mc[1] : '?';
+      sp.appendChild(z);
+      sp.appendChild(c);
+      if (komplett) leisteAnfassen(sp, i);
+      wrap.appendChild(sp);
+    });
+    var pfeile = document.getElementById('leistePfeile');
+    if (pfeile) {
+      pfeile.hidden = !(komplett && leisteAuswahl >= 0);
+      if (!pfeile.hidden) {
+        document.getElementById('pfeilLinks').disabled = leisteAuswahl === 0;
+        document.getElementById('pfeilRechts').disabled = leisteAuswahl === 3;
       }
-      if (c) {
-        if (fertig && mc) { c.textContent = mc[1]; c.classList.add('voll'); }
-        else { c.textContent = '?'; c.classList.remove('voll'); }
+    }
+  }
+  function leisteAnfassen(sp, start) {
+    sp.addEventListener('pointerdown', function (ev) {
+      ev.preventDefault();
+      sp.setPointerCapture(ev.pointerId);
+      var x0 = ev.clientX;
+      var bewegt = false;
+      var W = sp.offsetWidth + 6;
+      function move(e2) {
+        if (e2.pointerId !== ev.pointerId) return;
+        var dx = e2.clientX - x0;
+        if (Math.abs(dx) > 6) bewegt = true;
+        if (bewegt) {
+          sp.classList.add('zieht');
+          sp.style.transform = 'translateX(' + dx + 'px)';
+        }
       }
+      function ende(e2) {
+        if (e2.pointerId !== ev.pointerId) return;
+        sp.removeEventListener('pointermove', move);
+        sp.removeEventListener('pointerup', ende);
+        sp.removeEventListener('pointercancel', ende);
+        sp.style.transform = '';
+        sp.classList.remove('zieht');
+        if (bewegt) {
+          var dx = e2.clientX - x0;
+          var ziel = Math.max(0, Math.min(3, start + Math.round(dx / W)));
+          if (ziel !== start) { leisteVerschiebe(start, ziel); return; }
+          chipsAktualisieren();
+        } else {
+          leisteAuswahl = leisteAuswahl === start ? -1 : start;
+          chipsAktualisieren();
+        }
+      }
+      sp.addEventListener('pointermove', move);
+      sp.addEventListener('pointerup', ende);
+      sp.addEventListener('pointercancel', ende);
     });
   }
+  (function () {
+    var l = document.getElementById('pfeilLinks');
+    var r = document.getElementById('pfeilRechts');
+    if (l) l.addEventListener('click', function () { if (leisteAuswahl > 0) leisteVerschiebe(leisteAuswahl, leisteAuswahl - 1); });
+    if (r) r.addEventListener('click', function () { if (leisteAuswahl >= 0 && leisteAuswahl < 3) leisteVerschiebe(leisteAuswahl, leisteAuswahl + 1); });
+  })();
 
   /* ── Rätsel-Zustand ── */
   var stand = {};
