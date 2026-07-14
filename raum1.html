@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#14161c">
 <title>Raum 1 · Escape Room</title>
 <script>
-/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand.
-   Fail-open bei blockiertem Speicher (Privat-Modus) — Spielfluss vor Strenge. */
+/* Tür-Wächter: ohne geöffnete Tür zurück zur Türwand. Fail-open bei blockiertem Speicher. */
 try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.html'); } catch (e) {}
 </script>
 <style>
@@ -17,6 +16,7 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -25,14 +25,12 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
   }
   :where(h1, h2) { text-wrap: balance; }
   :where(p, li) { text-wrap: pretty; }
+  img { max-width: 100%; height: auto; display: block; }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
   @media (forced-colors: active) {
-    :where(a.karte, .platzhalter) { border: 1px solid CanvasText; }
+    :where(a.karte, .raetsel, button, input, .beute) { border: 1px solid CanvasText; }
   }
 }
 
@@ -41,9 +39,11 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
     color-scheme: dark;
     --bg: #14161c;
     --flaeche: #1e2129;
+    --flaeche-hell: #2a2e39;
     --text: #e8e6df;
     --gedimmt: #9a978e;
     --akzent: #d9a441;
+    --gruen: #7fb069;
     --linie: #33363f;
   }
   body { background: var(--bg); color: var(--text); min-height: 100svh; }
@@ -52,18 +52,131 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
   a.zurueck:hover, a.zurueck:focus-visible { color: var(--akzent); }
   header.kopf { text-align: center; margin-block: 1rem 1.5rem; }
   .siegel { font-size: 2.4rem; display: block; margin-bottom: 0.4rem; }
-  h1 {
-    font-size: 1.35rem;
-    letter-spacing: 0.05em;
-    margin: 0;
-    color: var(--akzent);
-    text-transform: uppercase;
-  }
+  h1 { font-size: 1.35rem; letter-spacing: 0.05em; margin: 0; color: var(--akzent); text-transform: uppercase; }
   .untertitel { color: var(--gedimmt); margin-top: 0.3rem; font-size: 0.92rem; }
 }
 
 @layer components {
-  .inhalte { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+  .inhalte { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+  .raetsel {
+    background: var(--flaeche);
+    border: 1px solid var(--linie);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .raetsel.geloest { border-color: var(--gruen); }
+  .raetsel h2 { font-size: 1.05rem; margin: 0 0 0.6rem; color: var(--akzent); }
+  .raetsel img { border-radius: 8px; margin-bottom: 0.75rem; }
+  .raetsel .auftrag { color: var(--gedimmt); font-size: 0.95rem; margin: 0 0 0.75rem; }
+
+  .geheimtext {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 1.6rem;
+    letter-spacing: 0.35em;
+    text-align: center;
+    color: var(--akzent);
+    background: var(--bg);
+    border: 1px dashed var(--akzent);
+    border-radius: 8px;
+    padding: 0.7rem 0.5rem;
+    margin: 0 0 0.75rem;
+  }
+
+  details.hinweis { margin: 0 0 0.75rem; font-size: 0.9rem; }
+  details.hinweis summary {
+    color: var(--gedimmt);
+    cursor: pointer;
+    padding: 0.3rem 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  details.hinweis summary:hover, details.hinweis summary:focus-visible { color: var(--akzent); }
+  details.hinweis[open] summary { color: var(--akzent); }
+  details.hinweis p {
+    margin: 0.4rem 0 0.2rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+
+  .antwort-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .antwort-form .fix { color: var(--akzent); font-weight: 600; letter-spacing: 0.05em; }
+  .antwort-form input {
+    font: inherit;
+    flex: 1;
+    min-width: 7rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--bg);
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .antwort-form input:focus-visible { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+  .antwort-form button {
+    font: inherit;
+    min-height: 48px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--linie);
+    background: var(--flaeche-hell);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .antwort-form button:hover, .antwort-form button:focus-visible { border-color: var(--akzent); }
+  .antwort-form button:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+  .meldung { min-height: 1.4em; margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--gedimmt); }
+
+  .stufe2 {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-left: 2px solid var(--akzent);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+  }
+  .stufe2 .folgefrage { margin: 0 0 0.7rem; font-style: italic; }
+
+  .geloest-text { color: var(--gruen); font-weight: 600; margin: 0.75rem 0 0; }
+
+  .beute {
+    border: 1px solid var(--akzent);
+    background: rgba(217, 164, 65, 0.08);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    text-align: center;
+  }
+  .beute p { margin: 0; color: var(--akzent); font-weight: 600; }
+
+  /* Zeitungsausschnitt — Belohnung nach gelöstem Rätsel */
+  .artikel-papier {
+    background: #f2ead6;
+    color: #2a2620;
+    font-family: Georgia, "Times New Roman", serif;
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin-top: 0.9rem;
+    box-shadow: inset 0 0 30px rgba(90, 70, 40, 0.15);
+  }
+  .artikel-kopf {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #7a6c52;
+    margin: 0 0 0.4rem;
+    border-bottom: 1px solid #c9bda0;
+    padding-bottom: 0.3rem;
+  }
+  .artikel-papier h3 { font-size: 1.15rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  .artikel-papier p.text { font-size: 0.9rem; margin: 0 0 0.5rem; text-align: justify; hyphens: auto; }
+  .artikel-papier p.text:last-child { margin-bottom: 0; }
+
   a.karte {
     display: block;
     background: var(--flaeche);
@@ -80,14 +193,6 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
   a.karte:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
   .karte .titel { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
   .karte .beschreibung { color: var(--gedimmt); font-size: 0.92rem; margin-top: 0.3rem; }
-  .platzhalter {
-    background: var(--flaeche);
-    border: 1px dashed var(--linie);
-    border-radius: 10px;
-    padding: 1.5rem 1.25rem;
-    text-align: center;
-    color: var(--gedimmt);
-  }
 }
 </style>
 </head>
@@ -95,21 +200,165 @@ try { if (localStorage.getItem('sf_tuer1') !== 'offen') location.replace('index.
 <main>
   <a class="zurueck" href="index.html">← Zurück zu den Türen</a>
   <header class="kopf">
-    <span class="siegel" aria-hidden="true">🔄</span>
+    <span class="siegel" aria-hidden="true">🪶</span>
     <h1>Raum 1</h1>
-    <p class="untertitel">Die Geheimschrift</p>
+    <p class="untertitel">Das Hauptgebäude</p>
   </header>
 
   <div class="inhalte">
-    <a class="karte" href="caesar.html">
-      <span class="titel"><span aria-hidden="true">🔄</span> Caesar-Scheibe</span>
-      <span class="beschreibung">Dreht die Scheibe und entschlüsselt die Geheimschrift — Buchstabe für Buchstabe.</span>
-    </a>
-    <!-- ╔═ WEITERE RÄTSEL FÜR RAUM 1 HIER EINFÜGEN ═╗
-         Neue Karte: <a class="karte" href="mein-raetsel.html">…</a>
-         oder direkt Text/Bilder/Aufgaben als HTML.
-         ╚═ (self-contained bleiben: keine externen Quellen) ═╝ -->
+    <section class="raetsel" data-key="r1a">
+      <h2>🪽 Die Flügel</h2>
+      <img src="werk_fluegel.jpg" alt="Bunte Flügel an einer Wand im Hauptgebäude" width="600" height="388">
+      <p class="auftrag">Findet diesen Ort. Wer davor steht, bekommt Flügel — und wer genau
+        hinsieht, entdeckt eine Signatur. Vervollständigt sie:</p>
+      <form class="antwort-form" data-stufe="1" data-salz="r1a" autocomplete="off"
+            data-hashes="f6c452b0b06132f112f3d6ef3a649c2dd8424062bb043b77e51e4633f3909f03,33f1e1fe696dcb8af88c9a68a95d00cda6e5fbfb8e57d793d7d006914badf37b,3dc564917e9475c036d6815537be50df93bc0491853b74005f75ee8cbe88e876,2b7c17b3637e157c27ad6f649b6561097fdb6026001c28f3e97aecedeef20290"
+            data-fehltext="Die Wand kennt ein anderes Wort — seht noch einmal nach.">
+        <span class="fix" aria-hidden="true">#</span>
+        <label for="r1a-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Fehlendes Wort der Signatur</label>
+        <input id="r1a-eingabe" maxlength="10" placeholder="_______" required>
+        <span class="fix" aria-hidden="true">.AG</span>
+        <button type="submit">Prüfen</button>
+      </form>
+      <div class="stufe2" hidden>
+        <p class="folgefrage">Die Signatur stimmt. Nun die Archiv-Frage:
+          In welchem Jahr feierte unsere Schule ihren ersten Abi-Jahrgang?
+          <em>Der Zeitungsausschnitt im Altbau-Archiv (hinter Tür 2) verrät es.</em></p>
+        <form class="antwort-form" data-stufe="2" data-salz="r1a2" autocomplete="off"
+              data-hashes="0dad381ba3e5cc0f24c3d6d5445b89f9b3e8dfac2ad0c99035e788d72362cb01"
+              data-fehltext="Das Archiv schweigt — dieses Jahr ist es nicht.">
+          <label for="r1a2-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Jahr des ersten Abi-Jahrgangs</label>
+          <input id="r1a2-eingabe" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="····" required>
+          <button type="submit">Prüfen</button>
+        </form>
+      </div>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Die Flügel haben gesprochen.</p>
+    </section>
+
+    <section class="raetsel" data-key="r1b">
+      <h2>🎨 Die Wand der Worte</h2>
+      <img src="werk_respekt.jpg" alt="Graffiti-Wand mit dem Wort Respect und weiteren Begriffen, ein Wort ist übermalt" width="600" height="328">
+      <p class="auftrag">Diese Wand spricht viele Worte — doch eines wurde übermalt.
+        Findet die Wand und lest, was dort wirklich steht:</p>
+      <form class="antwort-form" data-stufe="1" data-salz="r1b" autocomplete="off"
+            data-hashes="83eb36e388db462ef886a9e653917ddf9335473d008c7267e831738a694d0bc0"
+            data-fehltext="Das übermalte Wort lautet anders — geht näher heran.">
+        <label for="r1b-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Das übermalte Wort</label>
+        <input id="r1b-eingabe" maxlength="12" placeholder="DAS WORT" required>
+        <button type="submit">Prüfen</button>
+      </form>
+      <div class="stufe2" hidden>
+        <p class="folgefrage">Richtig. Und nun: Wie heißt unsere heutige Schulleiterin?
+          Ihr Name reimt sich auf eines der Worte an dieser Wand.</p>
+        <form class="antwort-form" data-stufe="2" data-salz="r1b2" autocomplete="off"
+              data-hashes="e6093be7b02c9a8f5eaf1b1475757ca48b1eb0fa41f53fbd443dcb01a0375fa1"
+              data-fehltext="So heißt sie nicht — lauscht dem Reim.">
+          <label for="r1b2-eingabe" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Name der Schulleiterin</label>
+          <input id="r1b2-eingabe" maxlength="20" placeholder="NAME" required>
+          <button type="submit">Prüfen</button>
+        </form>
+      </div>
+      <p class="meldung" aria-live="polite"></p>
+      <p class="geloest-text" hidden>✓ Die Wand hat ihr Geheimnis preisgegeben.</p>
+    </section>
+
+    <div class="beute" hidden data-b64="8J+nrSBGVU5EU1TDnENLIOKAlCBEZXIgZXJzdGUgVGVpbCBkZXMgWmllbG9ydHMgbGllZ3QgZnJlaTogTkVVQkFVLiBUcmFndCBpaG4gYXVmIGV1cmVtIEVyZ2VibmlzemV0dGVsIGVpbi4="><p></p></div>
   </div>
 </main>
+
+<script>
+(() => {
+  'use strict';
+
+  // Gesalzener SHA-256 — Lösungen stehen nirgends im Klartext.
+  async function loesungsHash(wert, salz) {
+    const data = new TextEncoder().encode(wert + '\u00b7' + salz + '\u00b7schulfest');
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function normalisiere(s) {
+    return s.trim().toUpperCase().normalize('NFC')
+      .replace(/^(FRAU|HERR)\s+/, '');
+  }
+
+  function zeigeGeloest(raetsel) {
+    raetsel.classList.add('geloest');
+    raetsel.querySelectorAll('form, .stufe2').forEach(el => el.hidden = true);
+    raetsel.querySelector('.geloest-text').hidden = false;
+
+    // Belohnungs-Zeitungsausschnitt dieses Rätsels aufdecken (kodiert abgelegt)
+    const artikel = raetsel.querySelector('.artikel');
+    if (artikel && artikel.hidden) {
+      const roh = Uint8Array.from(atob(artikel.dataset.b64), c => c.charCodeAt(0));
+      const ziel = artikel.querySelector('.artikel-text');
+      new TextDecoder().decode(roh).split('\n\n').forEach(abs => {
+        const p = document.createElement('p');
+        p.className = 'text';
+        p.textContent = abs;
+        ziel.appendChild(p);
+      });
+      artikel.hidden = false;
+    }
+  }
+
+  // Fundstück: erscheint erst, wenn ALLE Rätsel dieses Raums gelöst sind.
+  // Text liegt kodiert vor, damit der Quelltext nichts verrät.
+  function pruefeBeute() {
+    const beute = document.querySelector('.beute');
+    if (!beute || !beute.hidden) return;
+    const alle = [...document.querySelectorAll('.raetsel')].every(r => r.classList.contains('geloest'));
+    if (alle) {
+      const roh = Uint8Array.from(atob(beute.dataset.b64), c => c.charCodeAt(0));
+      beute.querySelector('p').textContent = new TextDecoder().decode(roh);
+      beute.hidden = false;
+    }
+  }
+
+  document.querySelectorAll('.raetsel').forEach(raetsel => {
+    const key = raetsel.dataset.key;
+
+    let stand = null;
+    try { stand = localStorage.getItem('sf_' + key); } catch (e) {}
+    if (stand === 'geloest') zeigeGeloest(raetsel);
+    else if (stand === 'stufe2' && raetsel.querySelector('.stufe2')) {
+      raetsel.querySelector('form[data-stufe="1"]').hidden = true;
+      raetsel.querySelector('.stufe2').hidden = false;
+    }
+
+    raetsel.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const input = form.querySelector('input');
+        const meldung = raetsel.querySelector('.meldung');
+        const wert = normalisiere(input.value);
+        const hashes = form.dataset.hashes.split(',');
+        const treffer = await loesungsHash(wert, form.dataset.salz);
+
+        if (hashes.includes(treffer)) {
+          meldung.textContent = '';
+          const stufe2 = raetsel.querySelector('.stufe2');
+          if (form.dataset.stufe === '1' && stufe2) {
+            form.hidden = true;
+            stufe2.hidden = false;
+            try { localStorage.setItem('sf_' + key, 'stufe2'); } catch (e) {}
+            stufe2.querySelector('input').focus();
+          } else {
+            try { localStorage.setItem('sf_' + key, 'geloest'); } catch (e) {}
+            zeigeGeloest(raetsel);
+            pruefeBeute();
+          }
+        } else {
+          meldung.textContent = form.dataset.fehltext || 'Noch nicht — schaut genauer hin.';
+          input.select();
+        }
+      });
+    });
+  });
+
+  pruefeBeute();
+})();
+</script>
 </body>
 </html>
