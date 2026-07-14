@@ -136,18 +136,27 @@
   }
   .tuer.offen .meldung { color: var(--gruen); }
 
-  /* Aufklappbarer Tipp je Tür */
-  details.tipp { margin-top: 0.25rem; font-size: 0.9rem; }
+  /* Aufklappbarer Tipp je Tür — deutlich sichtbarer Button */
+  details.tipp { margin-top: 0.5rem; font-size: 0.9rem; }
   details.tipp summary {
-    color: var(--gedimmt);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--akzent);
+    border-radius: 8px;
+    background: rgba(217, 164, 65, 0.1);
+    color: var(--akzent);
+    font-weight: 600;
     cursor: pointer;
-    padding: 0.35rem 0;
+    list-style: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  details.tipp summary:hover, details.tipp summary:focus-visible { color: var(--akzent); }
+  details.tipp summary::-webkit-details-marker { display: none; }
+  details.tipp summary:hover, details.tipp summary:focus-visible { background: rgba(217, 164, 65, 0.2); }
   details.tipp summary:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
-  details.tipp[open] summary { color: var(--akzent); }
   details.tipp p {
     margin: 0.4rem 0 0.2rem;
     padding: 0.7rem 0.9rem;
