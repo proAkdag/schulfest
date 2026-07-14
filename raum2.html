@@ -136,7 +136,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
 .zeitung { background: #f2ead6; color: #2a2620; font-family: Georgia, 'Times New Roman', serif; border-radius: 10px; padding: 14px 16px; box-shadow: inset 0 0 30px rgba(90,70,40,.15); }
 .zeitung-kopf { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #7a6c52; margin: 0 0 6px; border-bottom: 1px solid #c9bda0; padding-bottom: 4px; }
 .zeitung h3 { font-size: 17px; margin: 0 0 8px; line-height: 1.25; }
-.zeitung p { font-size: 14px; margin: 0 0 10px; text-align: justify; hyphens: auto; }
+.zeitung p { font-size: 14px; margin: 0 0 10px; text-align: justify; hyphens: manual; }
 .zeitung p:last-child { margin-bottom: 0; }
 .zeitung mark { background: rgba(214, 166, 60, .32); color: inherit; padding: 0 3px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .zeitung strong { color: #1f1b15; }
@@ -146,6 +146,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
 .beute { display: none; border: 1px solid var(--gold); background: var(--goldbg); border-radius: 14px; padding: 18px; text-align: center; }
 .beute.sichtbar { display: block; }
 .beute p { margin: 0; color: var(--gold); font-weight: 700; white-space: pre-line; }
+.beute .weiter { display: flex; align-items: center; justify-content: center; margin-top: 12px; min-height: 48px; border: 1px solid var(--gruen); background: var(--gruenbg); color: var(--gruen); font-weight: 700; border-radius: 10px; text-decoration: none; }
 
 /* ── Bottom-Bar ── */
 .leiste { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; border-top: 1px solid var(--linie); background: var(--karte); padding: 10px 14px 12px; }
@@ -191,7 +192,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <p class="intro-zeile">Der Name des ersten Schulleiters wurde verschlüsselt:</p>
       <p class="geheimtext">UNKXLVA</p>
       <div class="stufe1">
-        <p class="frage">Entschlüsselt den Namen mit der Caesar-Scheibe: innen die Geheimschrift, außen der Klartext.</p>
+        <p class="frage">Entschlüsselt den Namen mit der Caesar-Scheibe: innen die Geheimschrift, außen der Klartext. Die ersten beiden Ziffern des Baujahres zeigen euch, wie viele Schritte ihr dreht.</p>
         <div class="scheiben-buehne" id="scheibenBuehne"></div>
         <div class="scheiben-zeile">
           <button type="button" id="caesarMinus" aria-label="Eine Position zurückdrehen">− 1</button>
@@ -201,7 +202,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
         <p class="bedienhilfe">Ergibt das Wort keinen Namen, dreht die Scheibe in die andere Richtung.</p>
         <details class="tipp">
           <summary>💡 Tipp ansehen</summary>
-          <p class="tipp-text">Die ersten beiden Ziffern des Baujahres zeigen die Verschiebung.</p>
+          <p class="tipp-text">Das Baujahr hat euch Tür 2 geöffnet — erinnert euch an die ersten beiden Ziffern.</p>
         </details>
         <div class="hilfe2" hidden>
           <button type="button" class="hilfe2-knopf">Deutlichere Hilfe anzeigen</button>
@@ -242,7 +243,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
       <p class="fertig-text">✓ Die erste Schulgemeinschaft ist gezählt.</p>
     </section>
 
-    <div class="beute" id="beute"><p></p></div>
+    <div class="beute" id="beute"><p></p><a class="weiter" href="index.html">↩ Zurück zu den Türen</a></div>
   </div>
 </main>
 
@@ -274,7 +275,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
   };
 
   /* Zeitungsartikel aus dem Archiv (Base64 wie im Original) */
-  var ARTIKEL = 'KipIYXNwZS4qKiBBbHMgc2ljaCA9PTE5ODY9PSB6dW0gZXJzdGVuIE1hbCBkaWUgVMO8cmVuIGRlciBuZXVlbiBHZXNhbXRzY2h1bGUgSGFzcGUgw7ZmZm5ldGVuLCBiZWdhbm4gZWluIHNjaHVsaXNjaGVzIEFiZW50ZXVlci4gSW0gPT0xOTAzPT0gZXJiYXV0ZW4gR2Viw6R1ZGUgZGVzIGVoZW1hbGlnZW4gRXJuc3QtTWVpc3Rlci1HeW1uYXNpdW1zIMO8YmVybmFobSAqKkVja2hhcmQgQnVyZXNjaCoqIGFscyBlcnN0ZXIgU2NodWxsZWl0ZXIgZGFzIFN0ZXVlci4gRGllIElkZWU6IEtpbmRlciBtaXQgdW50ZXJzY2hpZWRsaWNoZW4gU3TDpHJrZW4gc29sbHRlbiBnZW1laW5zYW0gbGVybmVuIHVuZCBpaHJlbiBlaWdlbmVuIFdlZyBiaXMgenVtIEFiaXR1ciBnZWhlbi4KCk5vY2ggd2FyIGRpZSBuZXVlIFNjaHVsZSDDvGJlcnNjaGF1YmFyLiA9PTIwNT09IFNjaMO8bGVyaW5uZW4gdW5kIFNjaMO8bGVyIGJpbGRldGVuIGRpZSBlcnN0ZSBTY2h1bGdlbWVpbnNjaGFmdC4gRG9jaCBhdXMgZGllc2VtIGtsZWluZW4gQW5mYW5nIHd1Y2hzIEphaHIgZsO8ciBKYWhyIGVpbmUgZmVzdGUgR3LDtsOfZSBpbiBIYXNwZS4gRWluIGJlc29uZGVyZXIgTWVpbGVuc3RlaW4gZm9sZ3RlID09MTk5NT09LCBhbHMgZGllIFNjaHVsZSBpaHJlbiBlcnN0ZW4gZWlnZW5lbiBBYml0dXJqYWhyZ2FuZyB2ZXJhYnNjaGllZGV0ZS4KCkhldXRlIHNjaHJlaWJ0IGRpZSBHZXNhbXRzY2h1bGUgZGllc2UgR2VzY2hpY2h0ZSBhbHMgKipUYWxlbnRzY2h1bGUqKiB3ZWl0ZXIuIEJlc29uZGVyZSBTY2h3ZXJwdW5rdGUgbGllZ2VuIGF1ZiBNSU5ULCBkaWdpdGFsZW0gTGVybmVuLCBTcHJhY2hiaWxkdW5nIHVuZCBzb3ppYWxlbSBNaXRlaW5hbmRlci4gRGFiZWkgYmxlaWJ0IGRlciBLZXJuIHZvbiAxOTg2IGVyaGFsdGVuOiBnZW1laW5zYW0gbGVybmVuLCBUYWxlbnRlIGVudGRlY2tlbiwgQ2hhbmNlbiBlcsO2ZmZuZW4u';
+  var ARTIKEL = 'KipIYXNwZS4qKiBBbHMgc2ljaCA9PTE5ODY9PSB6dW0gZXJzdGVuIE1hbCBkaWUgVMO8cmVuIGRlciBuZXVlbiBHZXNhbXTCrXNjaHVsZSBIYXNwZSDDtmZmbmV0ZW4sIGJlZ2FubiBlaW4gc2NodWxpc2NoZXMgQWJlbnRldWVyLiBJbSA9PTE5MDM9PSBlcmJhdXRlbiBHZWLDpHVkZSBkZXMgZWhlbWFsaWdlbiBFcm5zdC1NZWlzdGVyLUd5bW5hc2l1bXMgw7xiZXJuYWhtICoqRWNraGFyZCBCdXJlc2NoKiogYWxzIGVyc3RlciBTY2h1bMKtbGVpdGVyIGRhcyBTdGV1ZXIuIERpZSBJZGVlOiBLaW5kZXIgbWl0IHVudGVywq1zY2hpZWTCrWxpY2hlbiBTdMOkcmtlbiBzb2xsdGVuIGdlbWVpbnNhbSBsZXJuZW4gdW5kIGlocmVuIGVpZ2VuZW4gV2VnIGJpcyB6dW0gQWJpdHVyIGdlaGVuLgoKTm9jaCB3YXIgZGllIG5ldWUgU2NodWxlIMO8YmVywq1zY2hhdWJhci4gPT0yMDU9PSBTY2jDvGxlcmlubmVuIHVuZCBTY2jDvGxlciBiaWxkZXRlbiBkaWUgZXJzdGUgU2NodWzCrWdlbWVpbsKtc2NoYWZ0LiBEb2NoIGF1cyBkaWVzZW0ga2xlaW5lbiBBbmZhbmcgd3VjaHMgSmFociBmw7xyIEphaHIgZWluZSBmZXN0ZSBHcsO2w59lIGluIEhhc3BlLiBFaW4gYmVzb25kZXJlciBNZWlsZW7CrXN0ZWluIGZvbGd0ZSA9PTE5OTU9PSwgYWxzIGRpZSBTY2h1bGUgaWhyZW4gZXJzdGVuIGVpZ2VuZW4gQWJpdHVywq1qYWhyZ2FuZyB2ZXJhYnNjaGllZGV0ZS4KCkhldXRlIHNjaHJlaWJ0IGRpZSBHZXNhbXTCrXNjaHVsZSBkaWVzZSBHZXNjaGljaHRlIGFscyAqKlRhbGVudHNjaHVsZSoqIHdlaXRlci4gQmVzb25kZXJlIFNjaHdlcsKtcHVua3RlIGxpZWdlbiBhdWYgTUlOVCwgZGlnaXRhbGVtIExlcm5lbiwgU3ByYWNowq1iaWxkdW5nIHVuZCBzb3ppYWxlbSBNaXTCrWVpbmFuZGVyLiBEYWJlaSBibGVpYnQgZGVyIEtlcm4gdm9uIDE5ODYgZXJoYWx0ZW46IGdlbWVpbnNhbSBsZXJuZW4sIFRhbGVudGUgZW50ZGVja2VuLCBDaGFuY2VuIGVyw7ZmZm5lbi4=';
 
   var BEUTE = {
     raum1: 'RnVuZHN0w7xjayAxIHZvbiA0CgpaaWVsb3J0LVRlaWw6IE5FVQpDb2Rld29ydC1UZWlsOiBKVUIKClRyYWd0IGJlaWRlIFRlaWxlIGluIEZlbGQgMSBlaW4u',
