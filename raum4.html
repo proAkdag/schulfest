@@ -112,6 +112,7 @@ main { max-width: 30rem; margin: 0 auto; padding: 16px 16px 156px; }
 .hilfe-ruf { color: var(--gold); font-weight: 600; font-size: 14px; margin: 4px 0 0; }
 summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animation: tipp-puls .5s ease 2; }
 @keyframes tipp-puls { 50% { transform: scale(1.04); } }
+.leiste-puls .spalte { animation: tipp-puls .55s ease 3; }
 .hilfe2 { margin-top: 8px; }
 .hilfe2-knopf { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--gold); border-radius: 10px; background: var(--goldbg); color: var(--gold); font-weight: 600; font-size: 14px; cursor: pointer; }
 
@@ -482,6 +483,7 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
      Kein Richtig/Falsch-Urteil — das Werk setzt nichts zusammen (§18). ── */
   var SORT_KEY = 'sf_sortierung';
   var leisteAuswahl = -1;
+  var leisteIntroGezeigt = false;
   function leisteKomplett() {
     return Object.keys(RAUM_KEYS).every(function (raum) {
       return RAUM_KEYS[raum].every(function (k) { return sGet('sf_' + k) === 'geloest'; });
@@ -507,6 +509,14 @@ summary.betont { border-width: 2px; box-shadow: 0 0 0 3px var(--goldbg); animati
     var wrap = document.getElementById('leisteSpalten');
     if (!wrap) return;
     var komplett = leisteKomplett();
+    if (komplett && !leisteIntroGezeigt) {
+      leisteIntroGezeigt = true;
+      if (leisteAuswahl < 0) leisteAuswahl = 0;
+      wrap.classList.add('leiste-puls');
+      setTimeout(function () { wrap.classList.remove('leiste-puls'); }, 1800);
+      var info = document.querySelector('.leiste-pfeile-info');
+      if (info) info.textContent = 'Alles gefunden! Bringt die Paare in die richtige Reihenfolge';
+    }
     var folge = komplett ? sortierungLesen() : ['raum1', 'raum2', 'raum3', 'raum4'];
     wrap.textContent = '';
     folge.forEach(function (raum, i) {
