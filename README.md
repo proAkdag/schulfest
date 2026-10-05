@@ -40,3 +40,11 @@ SHA-256-Hashes (sonst genügt „Seite untersuchen" zum Schummeln).
 In `raum1.html` – `raum4.html` ist der Einfüge-Bereich im Quelltext markiert
 (`RÄTSEL … HIER EINFÜGEN`). Self-contained bleiben: keine externen Quellen,
 Bilder als `data:`-URI einbetten.
+
+## Lizenz
+
+Frei für Lehrkräfte, Schulen und alle nicht-kommerziellen Zwecke. Kommerzielle Nutzung ist nicht erlaubt.
+Siehe [LICENSE](LICENSE) (PolyForm Noncommercial 1.0.0).
+
+Die Lizenz gilt für den Code. Die Fotos (`Gesamtschule_Hagen-Haspe.jpg`, `werk_fluegel.jpg`,
+`werk_respekt.jpg`) sind davon ausgenommen.
